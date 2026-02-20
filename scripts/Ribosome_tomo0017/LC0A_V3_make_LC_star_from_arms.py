@@ -39,7 +39,7 @@ from nucleosome_linker_prediction import (
 
 # You can also make these as command line arguments; here we hardcode for simplicity
 # ===== Base directory (edit here only if path changes) =====
-BASE_DIR = r"C:\Users\LongChen\OneDrive - Nexus365\Laptop\Research202408\Research_Dave\Dev\SocioMol\dev2\V1_noUI\NucC2Align\manual_linker\scripts\Ribosome_tomo0017\arm_star_file"
+BASE_DIR = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\scripts\Ribosome_tomo0017\arm_star_file"
 
 # ===== STAR files =====
 ARM1_0 = rf"{BASE_DIR}\arm1_0_ID_Reset_A_ribosome80s_T0017_with_origin.star"

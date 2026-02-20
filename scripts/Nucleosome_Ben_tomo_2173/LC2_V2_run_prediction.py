@@ -15,11 +15,11 @@ from nucleosome_linker_prediction import Nucleosome, LinkerAssigner
   # <- from your existing file
 
 # ---------- User params ----------
-INPUT_STAR  = "H1_Linkers_IDandName_HIV_Nuc_wt_grid_826002.star"
+INPUT_STAR  = "H1_Linkers_IDandName_nucleosome_T2173_with_origin.star"
 OUTPUT_STAR = "H1_DoubleLinker_annotated.star"
 EDGES_CSV   = "DoubleLinker_edges.csv"
 
-PIXEL_SIZE_A  = 11.64               # Å/pixel
+PIXEL_SIZE_A  = 1.96               # Å/pixel
 PIXEL_SIZE_NM = PIXEL_SIZE_A / 10.0 # nm/pixel
 
 # cutoff & model params (nm)

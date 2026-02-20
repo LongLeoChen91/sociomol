@@ -36,13 +36,19 @@ from nucleosome_linker_prediction import (
 )
 
 
-# You can also make these as command line arguments; here we hardcode for simplicity
-ARM1_0 = r"C:\Users\LongChen\OneDrive - Nexus365\Laptop\Research202408\Research_Dave\Dev\SocioMol\dev2\V1_noUI\NucC2Align\manual_linker\scripts\Single_tomo3\arm_star_file\Reset_arm1_0_IDandName_HIV_Nuc_wt_grid_826002.star"
-ARM1_1 = r"C:\Users\LongChen\OneDrive - Nexus365\Laptop\Research202408\Research_Dave\Dev\SocioMol\dev2\V1_noUI\NucC2Align\manual_linker\scripts\Single_tomo3\arm_star_file\Reset_arm1_1_IDandName_HIV_Nuc_wt_grid_826002.star"
-ARM2_0 = r"C:\Users\LongChen\OneDrive - Nexus365\Laptop\Research202408\Research_Dave\Dev\SocioMol\dev2\V1_noUI\NucC2Align\manual_linker\scripts\Single_tomo3\arm_star_file\Reset_arm2_0_IDandName_HIV_Nuc_wt_grid_826002.star"
-ARM2_1 = r"C:\Users\LongChen\OneDrive - Nexus365\Laptop\Research202408\Research_Dave\Dev\SocioMol\dev2\V1_noUI\NucC2Align\manual_linker\scripts\Single_tomo3\arm_star_file\Reset_arm2_1_IDandName_HIV_Nuc_wt_grid_826002.star"
 
-OUT_STAR = "H1_Linkers_IDandName_HIV_Nuc_wt_grid_826002.star"
+# You can also make these as command line arguments; here we hardcode for simplicity
+# ===== Base directory (edit here only if path changes) =====
+BASE_DIR = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\scripts\Nucleosome_Ben_tomo_2173\arm_star_file"
+
+# ===== STAR files =====
+ARM1_0 = rf"{BASE_DIR}\Reset_arm1_0_IDandName_nucleosome_T2173_with_origin.star"
+ARM1_1 = rf"{BASE_DIR}\Reset_arm1_1_IDandName_nucleosome_T2173_with_origin.star"
+ARM2_0 = rf"{BASE_DIR}\Reset_arm2_0_IDandName_nucleosome_T2173_with_origin.star"
+ARM2_1 = rf"{BASE_DIR}\Reset_arm2_1_IDandName_nucleosome_T2173_with_origin.star"
+
+
+OUT_STAR = "H1_Linkers_IDandName_nucleosome_T2173_with_origin.star"
 
 # --------- helpers ---------
 COORD_COLS = ("rlnCoordinateX", "rlnCoordinateY", "rlnCoordinateZ")
