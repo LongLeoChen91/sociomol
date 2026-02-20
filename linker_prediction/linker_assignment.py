@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Linker assignment for in situ nucleosome connectivity
+Linker assignment engine for generalized two-armed particles
 Implements the physics-based probability, greedy assignment, and constraints:
-- One connection per arm
-- No cycles across nucleosomes
+- One connection per arm/port
+- No cycles across particles/assemblies
 - Probability threshold stopping rule
 
 Coordinates in nanometers. Angles in radians.
@@ -81,7 +81,7 @@ def connection_probability(L: float, theta: float, L0: float = 15.0, lp: float =
 
 @dataclass
 class Particle:
-    """A particle (e.g. nucleosome or ribosome) with center, two arm exit points a1,a2 and unit tangents t1,t2."""
+    """A generalized two-armed particle with a center, two arm exit points a1,a2 and unit tangents t1,t2."""
     center: np.ndarray      # shape (3,)
     a1: np.ndarray          # exit point for arm 1
     a2: np.ndarray          # exit point for arm 2

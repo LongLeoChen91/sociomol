@@ -14,22 +14,33 @@ from scipy.spatial.transform import Rotation as R
 from linker_prediction import Nucleosome, LinkerAssigner
   # <- from your existing file
 
-# ---------- User params ----------
+# ==========================================
+# 1. Configuration
+# ==========================================
 INPUT_STAR  = "Avg_Linkers_ID_Reset_A_ribosome80s_T0017_with_origin.star"
 OUTPUT_STAR = "Avg_Linkers_annotated.star"
 EDGES_CSV   = "Linker_edges.csv"
 
-PIXEL_SIZE_A  = 1.96               # Å/pixel
+# Geometry & Scaling
+PIXEL_SIZE_A  = 1.96                # Å/pixel
 PIXEL_SIZE_NM = PIXEL_SIZE_A / 10.0 # nm/pixel
 
-# cutoff & model params (nm)
-DIST_CUTOFF_NM = 40 # [nm] Arm–arm distance cutoff; (i,j) kept if min(|ai-aj|) < cutoff
-LP_NM = 1.5     # persistence length
-L0_NM = 40       # reference length
-P_THRESHOLD = 0.3  
-IGNORE_MEASURED_L = False      # False or True: ignore measured L_nm, use constant 15 nm in bending energy, only θ matters
+# Physical Constraints & Probabilities
+DIST_CUTOFF_NM = 40                 # [nm] Arm–arm distance cutoff
+LP_NM = 1.5                         # [nm] Persistence length
+L0_NM = 40                          # [nm] Reference length
+P_THRESHOLD = 0.3                   # Probability threshold for assignment
+IGNORE_MEASURED_L = False           # If True, use constant L=15nm in bending energy
 
-# ---------- Helpers ----------
+# Connection Rules
+PORT_PAIRING = "complement"         # "any" (all pairs) or "complement" (forbid 0->0, 1->1)
+THETA_MODE = "alpha_sum"            # Angle calculation mode
+REQUIRE_TOWARD_LINE = True          # Require arms pointing toward connection line
+TOWARD_COS_THRESHOLD = 0.0          # Angle with line threshold (0.0 for <90°)
+
+# ==========================================
+# 2. Helpers
+# ==========================================
 def pick_cols(df, names):
     """Return first existing columns matching names (accepts with/without leading underscore)."""
     out = []
@@ -70,8 +81,10 @@ def euler_zyz_to_Zaxis(rot_tilt_psi_deg: np.ndarray) -> np.ndarray:
     return Zs
 
 
-# ---------- Main ----------
-if __name__ == "__main__":
+# ==========================================
+# 3. Main Workflow
+# ==========================================
+def main():
     print(f"Reading input STAR file: {INPUT_STAR}")
     data = starfile.read(INPUT_STAR, always_dict=True)
     # pick particles table
@@ -126,14 +139,13 @@ if __name__ == "__main__":
         nucs,
         lp=LP_NM,
         L0=L0_NM,
-        dist_cutoff_nm=DIST_CUTOFF_NM,   # coordinates already in nm
+        dist_cutoff_nm=DIST_CUTOFF_NM,
         p_threshold=P_THRESHOLD,
-        theta_mode="alpha_sum",          # Improved θ = α_i + α_j; theta_mode="tangent_tangent" (old definition, for comparison)
-        require_toward_line=True,        # Require arms pointing toward connection line
-        toward_cos_threshold=0.0,         # angle with line < 90° (half bending angle/each arm-line angle); can change to 0.5≈60° stricter; (1=0°,0=90°,-1=180°)
-        # === NEW: single switch down to the assigner ===
-        ignore_measured_L=IGNORE_MEASURED_L,  # if True: ignore measured L in Ubend, use L_fixed internally
-        port_pairing="complement"
+        theta_mode=THETA_MODE,
+        require_toward_line=REQUIRE_TOWARD_LINE,
+        toward_cos_threshold=TOWARD_COS_THRESHOLD,
+        ignore_measured_L=IGNORE_MEASURED_L,
+        port_pairing=PORT_PAIRING
     )
     assignments, adj = assigner.run()
 
@@ -211,3 +223,6 @@ if __name__ == "__main__":
     print(f"Particles (rows): {n_particles}; tomos: {n_tomos}")
     print(f"Assigned edges: {n_edges}; Components: {n_components}")
     print(f"Wrote {EDGES_CSV} and {OUTPUT_STAR}")
+
+if __name__ == "__main__":
+    main()
