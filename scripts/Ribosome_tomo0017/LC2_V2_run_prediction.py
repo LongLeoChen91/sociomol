@@ -133,6 +133,7 @@ if __name__ == "__main__":
         toward_cos_threshold=0.0,         # angle with line < 90° (half bending angle/each arm-line angle); can change to 0.5≈60° stricter; (1=0°,0=90°,-1=180°)
         # === NEW: single switch down to the assigner ===
         ignore_measured_L=IGNORE_MEASURED_L,  # if True: ignore measured L in Ubend, use L_fixed internally
+        port_pairing="complement"
     )
     assignments, adj = assigner.run()
 

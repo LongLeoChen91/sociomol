@@ -11,7 +11,7 @@ import pandas as pd
 import starfile
 from scipy.spatial.transform import Rotation as R
 
-from nucleosome_linker_prediction import Nucleosome, LinkerAssigner
+from linker_prediction import Nucleosome, LinkerAssigner
   # <- from your existing file
 
 # ---------- User params ----------

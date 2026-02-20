@@ -80,10 +80,10 @@ def connection_probability(L: float, theta: float, L0: float = 15.0, lp: float =
 # -------------------------
 
 @dataclass
-class Nucleosome:
-    """A nucleosome with center, two arm exit points a1,a2 and unit tangents t1,t2."""
+class Particle:
+    """A particle (e.g. nucleosome or ribosome) with center, two arm exit points a1,a2 and unit tangents t1,t2."""
     center: np.ndarray      # shape (3,)
-    a1: np.ndarray          # exit point for arm 1 (bp1 or bp147 side)
+    a1: np.ndarray          # exit point for arm 1
     a2: np.ndarray          # exit point for arm 2
     t1: np.ndarray          # unit tangent at a1
     t2: np.ndarray          # unit tangent at a2
@@ -93,6 +93,9 @@ class Nucleosome:
 
     def arm_tangent(self, arm: int) -> np.ndarray:
         return self.t1 if arm == 0 else self.t2
+
+# Backward compatibility alias
+Nucleosome = Particle
 
 # -------------------------
 # Graph utilities
@@ -141,13 +144,14 @@ class LinkerAssignment:
     pmax_over_psecond: Optional[float] = None
 
 class LinkerAssigner:
-    def __init__(self, nucs: List[Nucleosome],
+    def __init__(self, particles: List[Particle],
                  lp: float = 50.0, L0: float = 15.0,
                  dist_cutoff_nm: float = 20.0, p_threshold: float = 0.1,
                  theta_mode: str = "alpha_sum",            # mode for angle calculation
                  require_toward_line: bool = True,         # require tangents pointing toward the arm-line
                  toward_cos_threshold: float = 0.0,       # cosine threshold for orientation constraint
-                 ignore_measured_L: bool = False):                 # <<< NEW: single switch (True = only theta)
+                 ignore_measured_L: bool = False,                 # <<< NEW: single switch (True = only theta)
+                 port_pairing: str = "any"):              # "any" or "complement"
         """
         require_toward_line : bool, default True
             If True, enforce that both arm tangents point sufficiently toward
@@ -162,9 +166,14 @@ class LinkerAssigner:
                 0.0  ~ angle < 90° (lenient)
                 0.2  ~ angle < ~78° (moderate)
                 0.5  ~ angle < 60° (strict)
+                
+        port_pairing : str, default "any"
+            If "any", allows any port combinations (0->0, 1->1, 0->1, 1->0).
+            If "complement", only allows complementary pairing (0->1 or 1->0), 
+            and forbids (0->0) and (1->1).
         """
-        self.nucs = nucs
-        self.N = len(nucs)
+        self.particles = particles
+        self.N = len(particles)
         self.lp = lp
         self.L0 = L0
         self.dist_cutoff = dist_cutoff_nm
@@ -176,6 +185,7 @@ class LinkerAssigner:
         self.toward_cos_threshold = toward_cos_threshold
         # <<< NEW: store the single switch
         self.ignore_measured_L = ignore_measured_L
+        self.port_pairing = port_pairing
 
         self.arm_used = np.zeros((self.N, 2), dtype=bool)
         self.adj: Dict[int, List[int]] = {i: [] for i in range(self.N)}
@@ -185,9 +195,9 @@ class LinkerAssigner:
         """Find candidate node pairs if any arm-arm distance < cutoff."""
         cands = []
         for i in range(self.N):
-            ai1, ai2 = self.nucs[i].a1, self.nucs[i].a2
+            ai1, ai2 = self.particles[i].a1, self.particles[i].a2
             for j in range(i+1, self.N):
-                nj = self.nucs[j]
+                nj = self.particles[j]
                 dlist = [
                     np.linalg.norm(ai1 - nj.a1),
                     np.linalg.norm(ai1 - nj.a2),
@@ -210,22 +220,22 @@ class LinkerAssigner:
         L = np.zeros((2,2), dtype=float)
         P = np.zeros((2,2), dtype=float)
 
-        ci = self.nucs[i].center
-        cj = self.nucs[j].center
+        ci = self.particles[i].center
+        cj = self.particles[j].center
 
         for arm_i in (0, 1):
             for arm_j in (0, 1):
-                # === NEW: only allow complementary pairing (0↔1), forbid (0↔0) and (1↔1) ===
-                if arm_i == arm_j:
+                # Apply port pairing rules
+                if self.port_pairing == "complement" and arm_i == arm_j:
                     theta[arm_i, arm_j] = float("nan")
                     L[arm_i, arm_j] = float("nan")
                     P[arm_i, arm_j] = 0.0
                     continue
                 
-                ai = self.nucs[i].arm_point(arm_i)
-                aj = self.nucs[j].arm_point(arm_j)
-                ti = self.nucs[i].arm_tangent(arm_i)
-                tj = self.nucs[j].arm_tangent(arm_j)
+                ai = self.particles[i].arm_point(arm_i)
+                aj = self.particles[j].arm_point(arm_j)
+                ti = self.particles[i].arm_tangent(arm_i)
+                tj = self.particles[j].arm_tangent(arm_j)
 
                 # ---- theta computation modes ----
                 if getattr(self, "theta_mode", "alpha_sum") == "alpha_sum":
@@ -328,8 +338,8 @@ class LinkerAssigner:
             self.arm_used[j, arm_j] = True
 
             # Compute D on-the-fly for the chosen arms to avoid changing caches:
-            ai_sel = self.nucs[i].arm_point(arm_i)   # endpoint on i for the chosen arm
-            aj_sel = self.nucs[j].arm_point(arm_j)   # endpoint on j for the chosen arm
+            ai_sel = self.particles[i].arm_point(arm_i)   # endpoint on i for the chosen arm
+            aj_sel = self.particles[j].arm_point(arm_j)   # endpoint on j for the chosen arm
             D_sel = float(np.linalg.norm(aj_sel - ai_sel))
 
             # Save assignment (now includes D and psecond)
@@ -421,12 +431,12 @@ def _unit(v):
 
 def demo():
     """
-    Minimal synthetic example with 5 nucleosomes laid out in space.
+    Minimal synthetic example with 5 particles laid out in space.
     In practice, provide real (center, a1, a2, t1, t2) from STA/orientation.
     """
     np.random.seed(0)
 
-    nucs: List[Nucleosome] = []
+    particles: List[Particle] = []
     # Create a small chain roughly along x-axis
     for k in range(5):
         center = np.array([k*12.0, 0.0 + (np.random.rand()-0.5)*2.0, 0.0])
@@ -436,13 +446,14 @@ def demo():
         # tangents roughly ±x with small noise
         t1 = _unit(np.array([+1.0, 0.1*(np.random.rand()-0.5), 0.1*(np.random.rand()-0.5)]))
         t2 = _unit(np.array([-1.0, 0.1*(np.random.rand()-0.5), 0.1*(np.random.rand()-0.5)]))
-        nucs.append(Nucleosome(center, a1, a2, t1, t2))
+        particles.append(Particle(center, a1, a2, t1, t2))
 
-    assigner = LinkerAssigner(nucs,
+    assigner = LinkerAssigner(particles,
                               lp=50.0,   # DNA persistence length (nm)
                               L0=15.0,   # reference length (nm)
                               dist_cutoff_nm=20.0,
-                              p_threshold=0.1)
+                              p_threshold=0.1,
+                              port_pairing="any")
     assignments, adj = assigner.run()
 
     print("Assigned linkers:")
