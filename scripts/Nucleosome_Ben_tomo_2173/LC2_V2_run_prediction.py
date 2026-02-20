@@ -11,7 +11,7 @@ import pandas as pd
 import starfile
 from scipy.spatial.transform import Rotation as R
 
-from linker_prediction import Nucleosome, LinkerAssigner
+from linker_prediction import Particle, LinkerAssigner
   # <- from your existing file
 
 # ==========================================
@@ -131,8 +131,8 @@ def main():
     t1 = euler_zyz_to_Zaxis(ang1_deg)
     t2 = euler_zyz_to_Zaxis(ang2_deg)
 
-    # ---- build nucleosomes list ----
-    nucs = [Nucleosome(center=cen[i], a1=a1[i], a2=a2[i], t1=t1[i], t2=t2[i]) for i in range(len(df))]
+    # ---- build particles list ----
+    nucs = [Particle(center=cen[i], a1=a1[i], a2=a2[i], t1=t1[i], t2=t2[i]) for i in range(len(df))]
 
     # ---- run linker assignment (nm domain) ----
     assigner = LinkerAssigner(

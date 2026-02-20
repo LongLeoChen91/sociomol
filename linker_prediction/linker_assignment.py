@@ -94,9 +94,6 @@ class Particle:
     def arm_tangent(self, arm: int) -> np.ndarray:
         return self.t1 if arm == 0 else self.t2
 
-# Backward compatibility alias
-Nucleosome = Particle
-
 # -------------------------
 # Graph utilities
 # -------------------------
@@ -432,7 +429,7 @@ def _unit(v):
 def demo():
     """
     Minimal synthetic example with 5 particles laid out in space.
-    In practice, provide real (center, a1, a2, t1, t2) from STA/orientation.
+    In practice, provide real experimental coordinates and orientations for your particles.
     """
     np.random.seed(0)
 
@@ -449,7 +446,7 @@ def demo():
         particles.append(Particle(center, a1, a2, t1, t2))
 
     assigner = LinkerAssigner(particles,
-                              lp=50.0,   # DNA persistence length (nm)
+                              lp=50.0,   # Polymer persistence length (nm)
                               L0=15.0,   # reference length (nm)
                               dist_cutoff_nm=20.0,
                               p_threshold=0.1,
