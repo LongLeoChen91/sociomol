@@ -52,28 +52,18 @@ def bending_energy_lp(L: float, theta: float, lp: float = 50.0) -> float:
     L = max(L, eps)
     return (2.0 * lp / L) * (0.5 * theta) ** 2
 
-def connection_probability(L: float, theta: float, L0: float = 15.0, lp: float = 50.0, ignore_measured_L: bool = False) -> float:
+def connection_probability(L: float, theta: float, L0: float = 15.0, lp: float = 50.0) -> float:
     """
     P(L, theta) ∝ exp(-L/L0) * exp( - Ubend/(kBT) ), with Ubend/(kBT) in reduced units.
-    
-    If ignore_measured_L = True:
-        - Use a fixed contour length (L_fixed = 15 nm) inside Ubend
-        - Drop the exp(-L/L0) length prior
-        → Probability depends only on θ (smaller θ = higher P)    
     """
     if not np.isfinite(theta):
         return 0.0
-    if ignore_measured_L:
-        # Angle-only WLC model: fixed arc length, no length prior
-        L_fixed = 15.0
-        Ub_over_kT = bending_energy_lp(L_fixed, theta, lp=lp)
-        return math.exp(-Ub_over_kT)
-    else:
-        # Original WLC model: use measured L with length prior
-        if L is None or L <= 0 or not np.isfinite(L):
-            return 0.0
-        Ub_over_kT = bending_energy_lp(L, theta, lp=lp)
-        return math.exp(-L / L0) * math.exp(-Ub_over_kT)
+
+    # Original WLC model: use measured L with length prior
+    if L is None or L <= 0 or not np.isfinite(L):
+        return 0.0
+    Ub_over_kT = bending_energy_lp(L, theta, lp=lp)
+    return math.exp(-L / L0) * math.exp(-Ub_over_kT)
     
 # -------------------------
 # Data structures
@@ -147,7 +137,6 @@ class LinkerAssigner:
                  theta_mode: str = "alpha_sum",            # mode for angle calculation
                  require_toward_line: bool = True,         # require tangents pointing toward the arm-line
                  toward_cos_threshold: float = 0.0,       # cosine threshold for orientation constraint
-                 ignore_measured_L: bool = False,                 # <<< NEW: single switch (True = only theta)
                  port_pairing: str = "any"):              # "any" or "complement"
         """
         require_toward_line : bool, default True
@@ -180,8 +169,6 @@ class LinkerAssigner:
         self.theta_mode = theta_mode
         self.require_toward_line = require_toward_line
         self.toward_cos_threshold = toward_cos_threshold
-        # <<< NEW: store the single switch
-        self.ignore_measured_L = ignore_measured_L
         self.port_pairing = port_pairing
 
         self.arm_used = np.zeros((self.N, 2), dtype=bool)
@@ -261,7 +248,7 @@ class LinkerAssigner:
                 Lij = arc_length_from_endpoints_and_angle(D, th)
 
                 # P(L, θ)
-                Pij = connection_probability(Lij, th, L0=self.L0, lp=self.lp, ignore_measured_L=self.ignore_measured_L)
+                Pij = connection_probability(Lij, th, L0=self.L0, lp=self.lp)
                 theta[arm_i, arm_j] = th
                 L[arm_i, arm_j] = (Lij if Lij is not None else 0.0)
                 P[arm_i, arm_j] = Pij

@@ -11,7 +11,11 @@ from .linker_geometry import (
     midpoint_from_two_points,
 )
 
+# Import top-level wrappers 
+from .pipeline import run_prediction_pipeline
+
 __all__ = [
+    "run_prediction_pipeline",
     "LinkerAssigner",
     "Particle",
     "LinkerAssignment",
