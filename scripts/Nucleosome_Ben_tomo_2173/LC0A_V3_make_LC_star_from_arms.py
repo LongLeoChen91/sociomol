@@ -30,7 +30,7 @@ import starfile
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 # Angle/orientation calculation uses nucleosome_linker_prediction functions
-from nucleosome_linker_prediction import (
+from linker_prediction import (
     euler_zyz_from_two_points,
     midpoint_from_two_points,
 )
