@@ -11,14 +11,13 @@ CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260
 P_THRESHOLD_MAP = 0.4        # Applied to the 2D energy landscape overlay
 P_THRESHOLD_DIST = 0.4       # Applied to the 1D length distribution histogram
 
-# --- Energy Model Physics Constants ---
+# --- Energy Model Physics Constants (For 2D Energy Landscape) ---
 LP = 1.5                   # (nm) Persistence length (e.g., 1.5 for mRNA, 50 for DNA)
 L0 = 20                    # (nm) Reference length (ideally connection length)
 THETA0_DEG = 45            # (deg) Angular tolerance
 W_WLC = 1.0                # Weight for worm-like chain (bending) energy
 W_L = 1.0                  # Weight for length penalty
 W_TH = 1.0                 # Weight for angular penalty
-
 # --- Plotting Visuals : 2D Overlay Map ---
 CONTOUR_THRESHOLDS = [0.05]
 
