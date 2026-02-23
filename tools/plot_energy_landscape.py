@@ -6,7 +6,7 @@ import os
 # Set working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from config_plot import CSV_PATH, LP, L0, THETA0_DEG, W_WLC, W_L, W_TH, CONTOUR_THRESHOLDS
+from config_plot import CSV_PATH, P_THRESHOLD_MAP, LP, L0, THETA0_DEG, W_WLC, W_L, W_TH, CONTOUR_THRESHOLDS
 
 # ============================================================
 # 1. Configuration
@@ -20,11 +20,14 @@ L_COL = "L_nm"
 # ============================================================
 df = pd.read_csv(CSV_PATH)
 
-if THETA_COL not in df.columns or L_COL not in df.columns:
+if THETA_COL not in df.columns or L_COL not in df.columns or "P" not in df.columns:
     raise KeyError(f"Missing required columns in CSV. Available: {list(df.columns)}")
 
-theta_data = pd.to_numeric(df[THETA_COL], errors="coerce")
-L_data = pd.to_numeric(df[L_COL], errors="coerce")
+# Filter based on global threshold
+df_sub = df[df["P"] > P_THRESHOLD_MAP]
+
+theta_data = pd.to_numeric(df_sub[THETA_COL], errors="coerce")
+L_data = pd.to_numeric(df_sub[L_COL], errors="coerce")
 
 mask = theta_data.notna() & L_data.notna()
 theta_data = theta_data[mask]

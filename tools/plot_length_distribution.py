@@ -14,7 +14,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Import global configuration
 from config_plot import (
-    CSV_PATH, P_THRESHOLD, 
+    CSV_PATH, P_THRESHOLD_DIST, 
     FIT_MODE, N_COMPONENTS, BINS_MIN, BINS_MAX, BINS_STEP
 )
 
@@ -27,7 +27,7 @@ N_INIT = 20
 bins = np.arange(BINS_MIN, BINS_MAX, BINS_STEP)
 x_grid = np.linspace(bins.min(), bins.max(), 800)
 
-out_png = f"polysome_repeat_length_Pgt{str(P_THRESHOLD).replace('.', 'p')}_{FIT_MODE}.png"
+out_png = f"polysome_repeat_length_Pgt{str(P_THRESHOLD_DIST).replace('.', 'p')}_{FIT_MODE}.png"
 
 # ============================================================
 # 2. Helper: Standard Normal PDF
@@ -45,9 +45,9 @@ for col in ["P", "L_nm"]:
     if col not in df.columns:
         raise ValueError(f"CSV must contain column '{col}'. Available: {list(df.columns)}")
 
-df_sub = df[df["P"] > P_THRESHOLD]
+df_sub = df[df["P"] > P_THRESHOLD_DIST]
 if df_sub.empty:
-    raise ValueError(f"No data points left after filtering for P > {P_THRESHOLD}.")
+    raise ValueError(f"No data points left after filtering for P > {P_THRESHOLD_DIST}.")
 
 x = df_sub["L_nm"].astype(float).to_numpy()
 x = x[np.isfinite(x)]
@@ -135,7 +135,7 @@ elif FIT_MODE == "gmm":
 # Aesthetics
 ax.set_xlabel("Linker length (nm)")
 ax.set_ylabel("Probability density")
-ax.set_title(f"Polysome repeat length (P > {P_THRESHOLD})", fontsize=10, pad=12)
+ax.set_title(f"Polysome repeat length (P > {P_THRESHOLD_DIST})", fontsize=10, pad=12)
 
 ax.set_xlim(bins.min(), bins.max())
 ymax = max(ax.get_ylim()[1], mixture_pdf.max() * 1.15)

@@ -8,7 +8,8 @@ import os
 CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Ribosome_tomo0017\Linker_edges.csv"
 
 # --- Probability Filtering ---
-P_THRESHOLD = 0.5            # Min probability for plots to consider an edge valid
+P_THRESHOLD_MAP = 0.4        # Applied to the 2D energy landscape overlay
+P_THRESHOLD_DIST = 0.4       # Applied to the 1D length distribution histogram
 
 # --- Energy Model Physics Constants ---
 LP = 1.5                   # (nm) Persistence length (e.g., 1.5 for mRNA, 50 for DNA)
