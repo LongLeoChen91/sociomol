@@ -42,10 +42,26 @@ Outputs will be generated natively into the workspace:
 You do not need to edit internal source code to tune physics model strictness. The runner scripts in your `experiments/` workspaces expose these directly:
 
 ```python
-# Triple-term Energy Model Weights
+# -- A. Physics Base Parameters --
+LP_NM = 1.5                         # [nm] Persistence length
+L0_NM = 40                          # [nm] Reference length
+THETA0_DEG = 45.0                   # [deg] Reference angle
+
+# -- B. Formula Component Weights --
 W_WLC = 1.0                         # Weight for WLC bending energy
 W_L = 1.0                           # Weight for linear distance penalty
-W_TH = 1.0                          # Weight for relative angle tolerance
-THETA0_DEG = 45.0                   # Reference angle (degrees) for angle penalty
+W_TH = 0                            # Weight for relative angle tolerance
 ```
 By altering these weights, you instantly shift the regime. Increase `W_TH` to penalize bad entrance angles, or lower `W_L` to allow longer straight line spans.
+
+## 📐 Geometric Analysis Modes
+The algorithm employs a configurable geometric mode to dictate exactly how arm deflection (`theta`) is calculated before it gets fed into the physics formulas above:
+
+```python
+# -- C. Geometry & Structural Constraints --
+
+# "alpha_sum": (default) Physically realistic; evaluates sum of deflection angles from the straight connection line.
+# "tangent_tangent": (legacy) Naive 3D angle between the two arm direction vectors (ignores translation offsets).
+THETA_MODE = "alpha_sum"            
+REQUIRE_TOWARD_LINE = True          # Automatically reject backward/knotted connections
+```
