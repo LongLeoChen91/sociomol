@@ -44,6 +44,70 @@ def unit(v: np.ndarray) -> np.ndarray:
         return v
     return v / n
 
+def safe_clip_dot(u: np.ndarray, v: np.ndarray) -> float:
+    """Clip dot product to [-1, 1] for robust arccos."""
+    x = float(np.dot(u, v))
+    return max(-1.0, min(1.0, x))
+
+def angle_between(u: np.ndarray, v: np.ndarray) -> float:
+    """Angle between two unit vectors (radians)."""
+    c = safe_clip_dot(u, v)
+    return math.acos(c)
+
+def angle_from_dot(dotval: float) -> float:
+    """Clamp dot to [-1,1] then arccos, return radians."""
+    return math.acos(max(-1.0, min(1.0, float(dotval))))
+
+def arc_length_from_endpoints_and_angle(D: float, theta: float) -> Optional[float]:
+    """
+    L = theta * r, where r = D / (2*sin(theta/2)).
+    Handles small-angle and degenerate cases robustly.
+    Returns None if invalid geometry (theta ~ 0 and D ~ 0).
+    """
+    eps = 1e-8
+    half = 0.5 * theta
+    s = math.sin(half)
+    if abs(s) < eps:
+        # For very small theta, the circular arc radius -> large; use straight-line approximation L≈D
+        return D
+    r = D / (2.0 * s)
+    if r <= 0:
+        return None
+    return theta * abs(r)
+
+def theta_alpha_sum(center_i: np.ndarray, ai: np.ndarray, ti: np.ndarray,
+                    center_j: np.ndarray, aj: np.ndarray, tj: np.ndarray,
+                    toward_cos_threshold: float = 0.0,
+                    require_toward_line: bool = True) -> Tuple[float, bool]:
+    """
+    Bending angle using arm-line (no centers).
+
+    a_ij = unit(aj - ai)
+    alpha_i = angle(ti, +a_ij)
+    alpha_j = angle(tj, -a_ij)
+    theta   = alpha_i + alpha_j
+
+    If require_toward_line=True, both tangents must point toward ±a_ij
+    above the given cosine threshold. If ai≈aj, fall back to angle(ti,tj).
+    """
+    aij = unit(aj - ai)
+    if np.linalg.norm(aij) == 0:
+        # Degenerate case: arm endpoints coincide;, fall back to ti·-tj method
+        return angle_from_dot(np.dot(ti, -tj)), True
+
+    dot_i = float(np.dot(ti, aij))    # ti toward +a_ij
+    dot_j = float(np.dot(tj, -aij))   # tj toward -a_ij
+
+    # Orientation constraint: require ti pointing toward j and tj pointing toward i
+    if require_toward_line and (dot_i < toward_cos_threshold or dot_j < toward_cos_threshold):
+        return float("nan"), False
+
+    alpha_i = angle_from_dot(dot_i)
+    alpha_j = angle_from_dot(dot_j)
+    theta = alpha_i + alpha_j
+    return theta, True
+
+
 
 def build_frame_from_z_and_trialx(z_dir: np.ndarray, x_trial: np.ndarray) -> Optional[np.ndarray]:
     """

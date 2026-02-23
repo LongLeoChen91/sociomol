@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 import starfile
 
-from .linker_assignment import Particle, LinkerAssigner
+from .models import Particle
+from .assigner import LinkerAssigner
 from .star_utils import pick_col, pick_cols, colvec, euler_zyz_to_Zaxis
 
 def run_prediction_pipeline(

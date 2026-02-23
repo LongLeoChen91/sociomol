@@ -1,144 +1,22 @@
 # -*- coding: utf-8 -*-
 """
 Linker assignment engine for generalized two-armed particles
-Implements the physics-based probability, greedy assignment, and constraints:
+Implements the greedy assignment and constraints:
 - One connection per arm/port
 - No cycles across particles/assemblies
 - Probability threshold stopping rule
 
-Coordinates in nanometers. Angles in radians.
 Author: Long Chen
 """
 
-from __future__ import annotations
 import math
 import numpy as np
-from dataclasses import dataclass
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict
 
-# -------------------------
-# Geometry & probability
-# -------------------------
-
-def safe_clip_dot(u: np.ndarray, v: np.ndarray) -> float:
-    """Clip dot product to [-1, 1] for robust arccos."""
-    x = float(np.dot(u, v))
-    return max(-1.0, min(1.0, x))
-
-def angle_between(u: np.ndarray, v: np.ndarray) -> float:
-    """Angle between two unit vectors (radians)."""
-    c = safe_clip_dot(u, v)
-    return math.acos(c)
-
-def arc_length_from_endpoints_and_angle(D: float, theta: float) -> Optional[float]:
-    """
-    L = theta * r, where r = D / (2*sin(theta/2)).
-    Handles small-angle and degenerate cases robustly.
-    Returns None if invalid geometry (theta ~ 0 and D ~ 0).
-    """
-    eps = 1e-8
-    half = 0.5 * theta
-    s = math.sin(half)
-    if abs(s) < eps:
-        # For very small theta, the circular arc radius -> large; use straight-line approximation L≈D
-        return D
-    r = D / (2.0 * s)
-    if r <= 0:
-        return None
-    return theta * abs(r)
-
-def bending_energy_lp(L: float, theta: float, lp: float = 50.0) -> float:
-    eps = 1e-12
-    L = max(L, eps)
-    return (2.0 * lp / L) * (0.5 * theta) ** 2
-
-def connection_probability(L: float, theta: float, L0: float = 20.0, lp: float = 1.5,
-                           w_wlc: float = 1.0, w_L: float = 1.0, w_th: float = 1.0, 
-                           theta0_rad: float = math.pi/4.0) -> float:
-    """
-    P(L, theta) ∝ exp[
-      - w_wlc * (2 lp / L) * (θ/2)^2
-      - w_L   * (L / L0)
-      - w_th  * ( (θ/2) / θ0 )
-    ]
-    """
-    if not np.isfinite(theta):
-        return 0.0
-
-    if L is None or L <= 0 or not np.isfinite(L):
-        return 0.0
-        
-    E_wlc = bending_energy_lp(L, theta, lp=lp)
-    E_len = L / L0
-    E_ang = (0.5 * theta) / theta0_rad
-    
-    E_total = w_wlc * E_wlc + w_L * E_len + w_th * E_ang
-    return math.exp(-E_total)
-    
-# -------------------------
-# Data structures
-# -------------------------
-
-@dataclass
-class Particle:
-    """A generalized two-armed particle with a center, two arm exit points a1,a2 and unit tangents t1,t2."""
-    center: np.ndarray      # shape (3,)
-    a1: np.ndarray          # exit point for arm 1
-    a2: np.ndarray          # exit point for arm 2
-    t1: np.ndarray          # unit tangent at a1
-    t2: np.ndarray          # unit tangent at a2
-
-    def arm_point(self, arm: int) -> np.ndarray:
-        return self.a1 if arm == 0 else self.a2
-
-    def arm_tangent(self, arm: int) -> np.ndarray:
-        return self.t1 if arm == 0 else self.t2
-
-# -------------------------
-# Graph utilities
-# -------------------------
-
-class DSU:
-    """Disjoint Set Union (Union-Find) to prevent cycles."""
-    def __init__(self, n: int):
-        self.parent = list(range(n))
-        self.rank = [0]*n
-
-    def find(self, x: int) -> int:
-        while self.parent[x] != x:
-            self.parent[x] = self.parent[self.parent[x]]
-            x = self.parent[x]
-        return x
-
-    def union(self, x: int, y: int) -> bool:
-        rx, ry = self.find(x), self.find(y)
-        if rx == ry:
-            return False
-        if self.rank[rx] < self.rank[ry]:
-            self.parent[rx] = ry
-        elif self.rank[rx] > self.rank[ry]:
-            self.parent[ry] = rx
-        else:
-            self.parent[ry] = rx
-            self.rank[rx] += 1
-        return True
-
-# -------------------------
-# Core algorithm
-# -------------------------
-
-@dataclass
-class LinkerAssignment:
-    i: int
-    j: int
-    arm_i: int  # 0 or 1
-    arm_j: int  # 0 or 1
-    theta: float
-    L: float
-    D: float                       # NEW: straight-line distance between arm endpoints (nm)
-    prob: float
-    psecond: Optional[float] = None  # NEW: second-best probability for (i,j) over remaining combos
-    pmax_over_psecond: Optional[float] = None
+from .models import Particle, LinkerAssignment
+from .graph import DSU
+from .probability import connection_probability
+from .linker_geometry import angle_between, arc_length_from_endpoints_and_angle, theta_alpha_sum
 
 class LinkerAssigner:
     def __init__(self, particles: List[Particle],
@@ -353,9 +231,9 @@ class LinkerAssigner:
                 arm_i=arm_i, arm_j=arm_j,
                 theta=float(theta_ij[arm_i, arm_j]),
                 L=float(L_ij[arm_i, arm_j]),
-                D=D_sel,                                # NEW
+                D=D_sel,
                 prob=float(Pbest),
-                psecond=float(Psecond),                 # NEW
+                psecond=float(Psecond),
                 pmax_over_psecond=ratio
             )
             self.assignments.append(la)
@@ -381,95 +259,3 @@ class LinkerAssigner:
                     prob_cache[(u, v)] = (th_uv, L_uv, P_uv)
 
         return self.assignments, self.adj
-
-# ==== Utility helpers ====
-
-def unit(v: np.ndarray) -> np.ndarray:
-    n = np.linalg.norm(v)
-    if n == 0:
-        return v
-    return v / n
-
-def angle_from_dot(dotval: float) -> float:
-    """Clamp dot to [-1,1] then arccos, return radians."""
-    return math.acos(max(-1.0, min(1.0, float(dotval))))
-
-def theta_alpha_sum(center_i: np.ndarray, ai: np.ndarray, ti: np.ndarray,
-                    center_j: np.ndarray, aj: np.ndarray, tj: np.ndarray,
-                    toward_cos_threshold: float = 0.0,
-                    require_toward_line: bool = True) -> Tuple[float, bool]:
-    """
-    Bending angle using arm-line (no centers).
-
-    a_ij = unit(aj - ai)
-    alpha_i = angle(ti, +a_ij)
-    alpha_j = angle(tj, -a_ij)
-    theta   = alpha_i + alpha_j
-
-    If require_toward_line=True, both tangents must point toward ±a_ij
-    above the given cosine threshold. If ai≈aj, fall back to angle(ti,tj).
-    """
-    aij = unit(aj - ai)
-    if np.linalg.norm(aij) == 0:
-        # Degenerate case: arm endpoints coincide;, fall back to ti·-tj method
-        return angle_from_dot(np.dot(ti, -tj)), True
-
-    dot_i = float(np.dot(ti, aij))    # ti toward +a_ij
-    dot_j = float(np.dot(tj, -aij))   # tj toward -a_ij
-
-    # Orientation constraint: require ti pointing toward j and tj pointing toward i
-    if require_toward_line and (dot_i < toward_cos_threshold or dot_j < toward_cos_threshold):
-        return float("nan"), False
-
-    alpha_i = angle_from_dot(dot_i)
-    alpha_j = angle_from_dot(dot_j)
-    theta = alpha_i + alpha_j
-    return theta, True
-
-# -------------------------
-# Example usage
-# -------------------------
-
-def _unit(v):
-    n = np.linalg.norm(v)
-    return v / n if n > 0 else v
-
-def demo():
-    """
-    Minimal synthetic example with 5 particles laid out in space.
-    In practice, provide real experimental coordinates and orientations for your particles.
-    """
-    np.random.seed(0)
-
-    particles: List[Particle] = []
-    # Create a small chain roughly along x-axis
-    for k in range(5):
-        center = np.array([k*12.0, 0.0 + (np.random.rand()-0.5)*2.0, 0.0])
-        # mock arm exits ~ 5 nm from center along ±x
-        a1 = center + np.array([+5.0, 0.0, 0.0])
-        a2 = center + np.array([-5.0, 0.0, 0.0])
-        # tangents roughly ±x with small noise
-        t1 = _unit(np.array([+1.0, 0.1*(np.random.rand()-0.5), 0.1*(np.random.rand()-0.5)]))
-        t2 = _unit(np.array([-1.0, 0.1*(np.random.rand()-0.5), 0.1*(np.random.rand()-0.5)]))
-        particles.append(Particle(center, a1, a2, t1, t2))
-
-    assigner = LinkerAssigner(particles,
-                              lp=50.0,   # Polymer persistence length (nm)
-                              L0=15.0,   # reference length (nm)
-                              dist_cutoff_nm=20.0,
-                              p_threshold=0.1,
-                              port_pairing="any")
-    assignments, adj = assigner.run()
-
-    print("Assigned linkers:")
-    for a in assignments:
-        print(f"(i={a.i}, j={a.j}) arms=({a.arm_i}->{a.arm_j}) "
-              f"theta={a.theta:.3f} rad, L={a.L:.2f} nm, P={a.prob:.3f}, "
-              f"Pmax/Psecond={a.pmax_over_psecond:.2f}")
-
-    print("\nAdjacency:")
-    for i in sorted(adj.keys()):
-        print(i, ":", sorted(adj[i]))
-
-if __name__ == "__main__":
-    demo()

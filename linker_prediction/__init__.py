@@ -1,7 +1,8 @@
 # linker_prediction/__init__.py
 
 # Import core API (from linker_assignment.py, NOT linker_core.py)
-from .linker_assignment import LinkerAssigner, Particle, LinkerAssignment
+from .models import Particle, LinkerAssignment
+from .assigner import LinkerAssigner
 
 # Import geometry utilities (your stick_utils 已更名为 linker_geometry.py)
 from .linker_geometry import (
