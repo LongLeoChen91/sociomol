@@ -19,7 +19,7 @@ P_THRESHOLD = 0.3                   # Probability threshold for assignment
 # Triple-term Energy Model Weights
 W_WLC = 1.0                         # Weight for WLC bending energy
 W_L = 1.0                           # Weight for linear distance penalty
-W_TH = 1.0                          # Weight for relative angle tolerance
+W_TH = 0                          # Weight for relative angle tolerance
 THETA0_DEG = 45.0                   # Reference angle (degrees) for angle penalty
 
 PORT_PAIRING = "complement"         # "any" (all pairs) or "complement" (forbid 0->0, 1->1)
