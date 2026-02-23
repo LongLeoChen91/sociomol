@@ -35,6 +35,9 @@ from linker_prediction import (
     midpoint_from_two_points,
 )
 
+# Set working directory to the script's location
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 
 
 # You can also make these as command line arguments; here we hardcode for simplicity

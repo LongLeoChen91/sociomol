@@ -1,5 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+# Set working directory to the script's location
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # ============================================================
 # Target model:
@@ -14,14 +18,14 @@ import matplotlib.pyplot as plt
 # User-tunable parameters
 # -------------------------
 lp = 1.5
-L0 = 20
+L0 = 40
 theta0_deg = 45
 
-P_thresholds = [0.05, 0.4]
+P_thresholds = [0.3, 0.5]
 
 w_wlc = 1.0
 w_L   = 1.0
-w_th  = 1.0
+w_th  = 0
 
 # -------------------------
 # Ranges / grids
