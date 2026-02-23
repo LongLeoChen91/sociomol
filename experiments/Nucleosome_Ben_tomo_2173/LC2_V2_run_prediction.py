@@ -14,13 +14,20 @@ PIXEL_SIZE_A  = 1.96                # Å/pixel
 DIST_CUTOFF_NM = 30                 # [nm] Arm–arm distance cutoff
 P_THRESHOLD = 0.03                  # Probability threshold for assignment
 
-# Triple-term Energy Model Physics & Weights
-LP_NM = 50.0                        # [nm] Persistence length
-L0_NM = 25                          # [nm] Reference length
+# ==========================================
+# 2. Triple-term Energy Model Configuration
+# P(L, θ) ∝ exp( -W_WLC*E_wlc - W_L*E_len - W_TH*E_ang )
+# ==========================================
+
+# -- A. Physics Base Parameters --
+LP_NM = 50.0                        # [nm] Persistence length (bending stiffness)
+L0_NM = 25                          # [nm] Reference length (ideal connection distance)
+THETA0_DEG = 45.0                   # [deg] Reference angle for angle penalty
+
+# -- B. Formula Component Weights --
 W_WLC = 1.0                         # Weight for WLC bending energy
 W_L = 1.0                           # Weight for linear distance penalty
 W_TH = 0                            # Weight for relative angle tolerance
-THETA0_DEG = 45.0                   # Reference angle (degrees) for angle penalty
 
 PORT_PAIRING = "any"                # "any" (all pairs) or "complement" (forbid 0->0, 1->1)
 THETA_MODE = "alpha_sum"            # Angle calculation mode
