@@ -12,14 +12,14 @@ EDGES_CSV   = "Linker_edges.csv"
 
 PIXEL_SIZE_A  = 1.96                # Å/pixel
 DIST_CUTOFF_NM = 40                 # [nm] Arm–arm distance cutoff
-LP_NM = 1.5                         # [nm] Persistence length
-L0_NM = 40                          # [nm] Reference length
 P_THRESHOLD = 0.3                   # Probability threshold for assignment
 
-# Triple-term Energy Model Weights
+# Triple-term Energy Model Physics & Weights
+LP_NM = 1.5                         # [nm] Persistence length
+L0_NM = 40                          # [nm] Reference length
 W_WLC = 1.0                         # Weight for WLC bending energy
 W_L = 1.0                           # Weight for linear distance penalty
-W_TH = 0                          # Weight for relative angle tolerance
+W_TH = 0                            # Weight for relative angle tolerance
 THETA0_DEG = 45.0                   # Reference angle (degrees) for angle penalty
 
 PORT_PAIRING = "complement"         # "any" (all pairs) or "complement" (forbid 0->0, 1->1)
