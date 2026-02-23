@@ -8,23 +8,20 @@ from sklearn.mixture import GaussianMixture
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # ============================================================
+# ============================================================
 # 1. Configuration
 # ============================================================
 
-CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Ribosome_tomo0017\Linker_edges.csv"
-P_THRESHOLD = 0.5            # Min probability for histogram plotting
+# Import global configuration
+from config_plot import (
+    CSV_PATH, P_THRESHOLD, 
+    FIT_MODE, N_COMPONENTS, BINS_MIN, BINS_MAX, BINS_STEP
+)
 
-FIT_MODE = "single"             # Choose from: "single" (Standard Gaussian) or "gmm" (Gaussian Mixture)
-
-# GMM parameters (only used if FIT_MODE == "gmm")
-N_COMPONENTS = 2
 RANDOM_STATE = 0
 N_INIT = 20
 
-# Histogram parameters
-BINS_MIN = 10
-BINS_MAX = 36
-BINS_STEP = 2
+
 
 # Derived parameter grids
 bins = np.arange(BINS_MIN, BINS_MAX, BINS_STEP)

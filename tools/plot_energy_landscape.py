@@ -6,30 +6,14 @@ import os
 # Set working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+from config_plot import CSV_PATH, LP, L0, THETA0_DEG, W_WLC, W_L, W_TH, CONTOUR_THRESHOLDS
+
 # ============================================================
 # 1. Configuration
 # ============================================================
 
-# --- Data Configuration ---
-# CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Nucleosome_Ben_tomo_2173\DoubleLinker_edges.csv"
-CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Ribosome_tomo0017\Linker_edges.csv"
-
 THETA_COL = "theta_deg"
 L_COL = "L_nm"
-
-# --- Model Parameters ---
-# Nucleosome params (from previous context: lp=50, L0=25, P_thr=[0.03, 0.1], w_wlc=1.0, w_L=1.0, w_th=0)
-# Ribosome params (from previous context: lp=1.5, L0=40, P_thr=[0.3, 0.5])
-lp = 1.5
-L0 = 40
-theta0_deg = 45
-
-P_thresholds = [0.3]
-# P_thresholds = [0.3,0.5,0.7]
-
-w_wlc = 1.0
-w_L   = 1.0
-w_th  = 0
 
 # ============================================================
 # 2. Data Loading
@@ -61,15 +45,15 @@ theta_vals_deg = np.degrees(theta_vals_rad)
 L_grid, theta_grid_rad = np.meshgrid(L_vals, theta_vals_rad)
 _, theta_grid_deg = np.meshgrid(L_vals, theta_vals_deg)
 
-theta0 = np.deg2rad(theta0_deg)
+theta0 = np.deg2rad(THETA0_DEG)
 if theta0 <= 0:
     raise ValueError("theta0_deg must be > 0")
 
-E_wlc = (2.0 * lp / L_grid) * (0.5 * theta_grid_rad) ** 2
+E_wlc = (2.0 * LP / L_grid) * (0.5 * theta_grid_rad) ** 2
 E_len = (L_grid / L0)
 E_ang = (0.5 * theta_grid_rad) / theta0
 
-E_total = w_wlc * E_wlc + w_L * E_len + w_th * E_ang
+E_total = W_WLC * E_wlc + W_L * E_len + W_TH * E_ang
 P = np.exp(-E_total)
 
 # ============================================================
@@ -91,7 +75,7 @@ colors = ["red", "orange", "magenta", "black", "grey"]
 linestyles = ["-", "--", "-.", ":", "-"]
 linewidths = [2.5, 2.5, 2.0, 2.0, 2.0]
 
-for i, thr in enumerate(P_thresholds):
+for i, thr in enumerate(CONTOUR_THRESHOLDS):
     c = colors[i % len(colors)]
     ls = linestyles[i % len(linestyles)]
     lw = linewidths[i % len(linewidths)]
@@ -126,8 +110,8 @@ ax.set_xlabel("Linker length L (nm)", fontsize=13)
 ax.set_ylabel("Bending angle θ (degrees)", fontsize=13)
 ax.set_title(
     "Prediction Verification vs Linker Probability Map\n"
-    f"lp={lp:g} nm, L0={L0:g} nm, θ0={theta0_deg:g}° | "
-    f"w_wlc={w_wlc:g}, w_L={w_L:g}, w_th={w_th:g}",
+    f"lp={LP:g} nm, L0={L0:g} nm, θ0={THETA0_DEG:g}° | "
+    f"w_wlc={W_WLC:g}, w_L={W_L:g}, w_th={W_TH:g}",
     fontsize=12,
     pad=12
 )
@@ -143,8 +127,8 @@ ax.legend(loc="upper right")
 
 fig.tight_layout()
 
-out_png = "theta_vs_L_overlay_probability.png"
+out_png = "theta_vs_L_energy_landscape.png"
 fig.savefig(out_png, dpi=300)
 plt.show()
 
-print(f"✅ Overlay Figure saved as '{out_png}'")
+print(f"✅ Energy Landscape Figure saved as '{out_png}'")
