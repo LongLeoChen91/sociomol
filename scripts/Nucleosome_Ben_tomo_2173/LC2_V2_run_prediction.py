@@ -16,6 +16,12 @@ LP_NM = 50.0                        # [nm] Persistence length
 L0_NM = 25                          # [nm] Reference length
 P_THRESHOLD = 0.03                  # Probability threshold for assignment
 
+# Triple-term Energy Model Weights
+W_WLC = 1.0                         # Weight for WLC bending energy
+W_L = 1.0                           # Weight for linear distance penalty
+W_TH = 1.0                          # Weight for relative angle tolerance
+THETA0_DEG = 45.0                   # Reference angle (degrees) for angle penalty
+
 PORT_PAIRING = "any"                # "any" (all pairs) or "complement" (forbid 0->0, 1->1)
 THETA_MODE = "alpha_sum"            # Angle calculation mode
 REQUIRE_TOWARD_LINE = True          # Require arms pointing toward connection line
@@ -31,6 +37,10 @@ if __name__ == "__main__":
         lp_nm=LP_NM,
         l0_nm=L0_NM,
         p_threshold=P_THRESHOLD,
+        w_wlc=W_WLC,
+        w_L=W_L,
+        w_th=W_TH,
+        theta0_deg=THETA0_DEG,
         port_pairing=PORT_PAIRING,
         theta_mode=THETA_MODE,
         require_toward_line=REQUIRE_TOWARD_LINE,

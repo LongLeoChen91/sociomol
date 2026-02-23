@@ -52,18 +52,28 @@ def bending_energy_lp(L: float, theta: float, lp: float = 50.0) -> float:
     L = max(L, eps)
     return (2.0 * lp / L) * (0.5 * theta) ** 2
 
-def connection_probability(L: float, theta: float, L0: float = 15.0, lp: float = 50.0) -> float:
+def connection_probability(L: float, theta: float, L0: float = 20.0, lp: float = 1.5,
+                           w_wlc: float = 1.0, w_L: float = 1.0, w_th: float = 1.0, 
+                           theta0_rad: float = math.pi/4.0) -> float:
     """
-    P(L, theta) ∝ exp(-L/L0) * exp( - Ubend/(kBT) ), with Ubend/(kBT) in reduced units.
+    P(L, theta) ∝ exp[
+      - w_wlc * (2 lp / L) * (θ/2)^2
+      - w_L   * (L / L0)
+      - w_th  * ( (θ/2) / θ0 )
+    ]
     """
     if not np.isfinite(theta):
         return 0.0
 
-    # Original WLC model: use measured L with length prior
     if L is None or L <= 0 or not np.isfinite(L):
         return 0.0
-    Ub_over_kT = bending_energy_lp(L, theta, lp=lp)
-    return math.exp(-L / L0) * math.exp(-Ub_over_kT)
+        
+    E_wlc = bending_energy_lp(L, theta, lp=lp)
+    E_len = L / L0
+    E_ang = (0.5 * theta) / theta0_rad
+    
+    E_total = w_wlc * E_wlc + w_L * E_len + w_th * E_ang
+    return math.exp(-E_total)
     
 # -------------------------
 # Data structures
@@ -132,8 +142,10 @@ class LinkerAssignment:
 
 class LinkerAssigner:
     def __init__(self, particles: List[Particle],
-                 lp: float = 50.0, L0: float = 15.0,
+                 lp: float = 1.5, L0: float = 20.0,
                  dist_cutoff_nm: float = 20.0, p_threshold: float = 0.1,
+                 w_wlc: float = 1.0, w_L: float = 1.0, w_th: float = 1.0,
+                 theta0_deg: float = 45.0,
                  theta_mode: str = "alpha_sum",            # mode for angle calculation
                  require_toward_line: bool = True,         # require tangents pointing toward the arm-line
                  toward_cos_threshold: float = 0.0,       # cosine threshold for orientation constraint
@@ -164,6 +176,12 @@ class LinkerAssigner:
         self.L0 = L0
         self.dist_cutoff = dist_cutoff_nm
         self.p_threshold = p_threshold
+        
+        # New energy weights
+        self.w_wlc = w_wlc
+        self.w_L = w_L
+        self.w_th = w_th
+        self.theta0_rad = math.radians(theta0_deg)
 
         # New configuration options
         self.theta_mode = theta_mode
@@ -248,7 +266,10 @@ class LinkerAssigner:
                 Lij = arc_length_from_endpoints_and_angle(D, th)
 
                 # P(L, θ)
-                Pij = connection_probability(Lij, th, L0=self.L0, lp=self.lp)
+                Pij = connection_probability(
+                    Lij, th, L0=self.L0, lp=self.lp,
+                    w_wlc=self.w_wlc, w_L=self.w_L, w_th=self.w_th, theta0_rad=self.theta0_rad
+                )
                 theta[arm_i, arm_j] = th
                 L[arm_i, arm_j] = (Lij if Lij is not None else 0.0)
                 P[arm_i, arm_j] = Pij
