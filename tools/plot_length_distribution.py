@@ -75,7 +75,7 @@ if FIT_MODE == "single":
     
     pdf = normal_pdf(x_grid, mu, sigma)
     mixture_pdf = pdf
-    labels.append(f"$\\mu$={mu:.1f}nm\n$\\sigma$={sigma:.1f}nm")
+    labels.append(f"$\\mu$ = {mu:.1f} nm\n$\\sigma$ = {sigma:.1f} nm")
     
 elif FIT_MODE == "gmm":
     gmm = GaussianMixture(
