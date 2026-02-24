@@ -14,7 +14,7 @@ OUTPUT_STAR = "Avg_Linkers_annotated.star"
 EDGES_CSV   = "Linker_edges.csv"
 
 PIXEL_SIZE_A  = 1.96                # Å/pixel
-DIST_CUTOFF_NM = 60                 # [nm] Arm–arm distance cutoff
+DIST_CUTOFF_NM = 40                 # [nm] Arm–arm distance cutoff
 P_THRESHOLD = 0.03                   # Probability threshold for assignment
 
 # ==========================================
