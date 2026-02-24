@@ -30,14 +30,13 @@ import starfile
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 # Angle/orientation calculation uses nucleosome_linker_prediction functions
-from nucleosome_linker_prediction import (
+from linker_prediction import (
     euler_zyz_from_two_points,
     midpoint_from_two_points,
 )
 
 # Set working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 
 
 # You can also make these as command line arguments; here we hardcode for simplicity
@@ -131,7 +130,7 @@ def main():
         m = pd.DataFrame(index=np.arange(len(df_a10)))
         for df, suf in [(df_a10, "a10"), (df_a11, "a11"), (df_a20, "a20"), (df_a21, "a21")]:
             for c in COORD_COLS:
-                m[f"{c}__{suf}"] = df[c].to_numpy()
+                m[f"{c}___suf"] = df[c].to_numpy()
         # If available, keep one ID column as reference
         for c in ("rlnTomoParticleId", "_rlnTomoParticleId", "rlnParticleId", "_rlnParticleId"):
             if c in df_a10.columns:
