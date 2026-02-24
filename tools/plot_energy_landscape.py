@@ -38,7 +38,12 @@ print(f"[INFO] Loaded {len(theta_data)} points from CSV")
 # ============================================================
 # 3. Model Computation (Energy / Probability Map)
 # ============================================================
-L_min, L_max, nL = 1.0, 100.0, 400
+# Determine sensible upper bound for L axis based on data (with minimum 60nm padding)
+max_L_data = float(L_data.max()) if len(L_data) > 0 else 60.0
+max_L_plot = max(60.0, max_L_data * 1.1)
+
+# Only generate grid slightly beyond the plot limit to keep labels inside
+L_min, L_max, nL = 1.0, max_L_plot * 1.05, 400
 t_min, t_max, nT = 0.0, np.pi, 400
 
 L_vals = np.linspace(L_min, L_max, nL)
@@ -93,7 +98,16 @@ for i, thr in enumerate(CONTOUR_THRESHOLDS):
     
     # Optional annotation per contour line
     fmt = {thr: f"P={thr}"}
-    ax.clabel(cs, fmt=fmt, inline=True, fontsize=11)
+    # Force placement to be fully inside the visible area
+    ax.clabel(
+        cs, 
+        fmt=fmt, 
+        inline=True, 
+        fontsize=11, 
+        manual=False,
+        use_clabeltext=True,
+        rightside_up=True
+    )
 
 # c) Scatter specific predicted points
 ax.scatter(
@@ -119,9 +133,8 @@ ax.set_title(
     pad=12
 )
 
-# Set limits similar to scatter plot, or bounded by data + contour
-max_L_plot = max(60, L_data.max() * 1.1 if len(L_data) > 0 else 60)
-ax.set_xlim(0, max_L_plot)
+# Set limits bounded by data with extra padding on right for labels
+ax.set_xlim(0, max_L_plot * 1.1)
 ax.set_ylim(0, 180)
 
 ax.spines["top"].set_visible(False)

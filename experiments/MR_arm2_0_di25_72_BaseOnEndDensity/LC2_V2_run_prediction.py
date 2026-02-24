@@ -30,7 +30,7 @@ THETA0_DEG = 45.0                   # [deg] Reference angle for angle penalty
 # -- B. Formula Component Weights --
 W_WLC = 1.0                         # Weight for WLC bending energy
 W_L = 1.0                           # Weight for linear distance penalty
-W_TH = 1.0                          # Weight for relative angle tolerance
+W_TH = 0                          # Weight for relative angle tolerance
 
 # -- C. Geometry & Structural Constraints --
 PORT_PAIRING = "any"                # "any" (all pairs) or "complement" (forbid 0->0, 1->1)
