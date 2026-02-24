@@ -27,3 +27,11 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Output data files
+*_annotated.star
+*_edges.csv
+**/*_annotated.star
+**/*_edges.csv
+**/*.png
+**/*.pdf
