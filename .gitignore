@@ -35,3 +35,7 @@ venv.bak/
 **/*_edges.csv
 **/*.png
 **/*.pdf
+**/*.log
+**/*.star
+**/arm_star_file/
+GroundTruth_edges_*.csv
