@@ -4,7 +4,7 @@
 from .models import Particle, LinkerAssignment
 from .assigner import LinkerAssigner
 
-# Import geometry utilities (your stick_utils 已更名为 linker_geometry.py)
+# Import geometry utilities (previously stick_utils, now renamed to linker_geometry.py)
 from .linker_geometry import (
     unit,
     build_frame_from_z_and_trialx,
