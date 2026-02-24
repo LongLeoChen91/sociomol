@@ -12,6 +12,7 @@ Author: Long Chen
 import math
 import numpy as np
 from typing import List, Tuple, Dict
+from scipy.spatial import cKDTree
 
 from .models import Particle, LinkerAssignment
 from .graph import DSU
@@ -72,87 +73,140 @@ class LinkerAssigner:
         self.assignments: List[LinkerAssignment] = []
 
     def _pairwise_candidates(self) -> List[Tuple[int,int]]:
-        """Find candidate node pairs if any arm-arm distance < cutoff."""
-        cands = []
+        """Find candidate node pairs if any arm-arm distance < cutoff using KDTree for O(N log N) performance."""
+        if self.N == 0:
+            return []
+            
+        # Build an array of all arm endpoints: shape (2N, 3)
+        # Even indices (2i) correspond to arm 0, odd indices (2i+1) to arm 1
+        pts = np.empty((2 * self.N, 3), dtype=float)
         for i in range(self.N):
-            ai1, ai2 = self.particles[i].a1, self.particles[i].a2
-            for j in range(i+1, self.N):
-                nj = self.particles[j]
-                dlist = [
-                    np.linalg.norm(ai1 - nj.a1),
-                    np.linalg.norm(ai1 - nj.a2),
-                    np.linalg.norm(ai2 - nj.a1),
-                    np.linalg.norm(ai2 - nj.a2),
-                ]
-                if min(dlist) < self.dist_cutoff:
-                    cands.append((i, j))
-        return cands
-
-    def _compute_four_probs(self, i: int, j: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        For arms (i:0/1) x (j:0/1), compute theta, L, P.
-        Supports two theta modes: 
-          - "alpha_sum": arm-line definition:a_ij = unit(aj - ai); theta = angle(t_i, +a_ij) + angle(t_j, -a_ij), with optional orientation checks against the arm-line.
-          - "tangent_tangent": theta = arccos(clip(t_i · t_j))  (legacy)
-        Returns arrays of shape (2,2).
-        """
-        theta = np.zeros((2,2), dtype=float)
-        L = np.zeros((2,2), dtype=float)
-        P = np.zeros((2,2), dtype=float)
-
-        ci = self.particles[i].center
-        cj = self.particles[j].center
-
-        for arm_i in (0, 1):
-            for arm_j in (0, 1):
-                # Apply port pairing rules
-                if self.port_pairing == "complement" and arm_i == arm_j:
-                    theta[arm_i, arm_j] = float("nan")
-                    L[arm_i, arm_j] = float("nan")
-                    P[arm_i, arm_j] = 0.0
-                    continue
+            pts[2*i] = self.particles[i].a1
+            pts[2*i+1] = self.particles[i].a2
+            
+        tree = cKDTree(pts)
+        
+        # Query all pairs within dist_cutoff
+        # raw_pairs contains tuples of indices within the `pts` array (u, v)
+        raw_pairs = tree.query_pairs(r=self.dist_cutoff)
+        
+        cands = set()
+        for u, v in raw_pairs:
+            i, j = u // 2, v // 2
+            if i != j:
+                # Ensure ordered tuples to match legacy (i < j)
+                cands.add(tuple(sorted((i, j))))
                 
-                ai = self.particles[i].arm_point(arm_i)
-                aj = self.particles[j].arm_point(arm_j)
-                ti = self.particles[i].arm_tangent(arm_i)
-                tj = self.particles[j].arm_tangent(arm_j)
+        return sorted(list(cands))
 
-                # ---- theta computation modes ----
-                if getattr(self, "theta_mode", "alpha_sum") == "alpha_sum":
-                    # --- compute bending angle θ and feasibility ---
-                    # NOTE:
-                    #   - If feasible == False, this pair is discarded (probability forced to 0).
-                    #   - In that case, θ is only a placeholder (0.0 or NaN) and must NOT be used for scoring or analysis.
-                    th, feasible = theta_alpha_sum(
-                        ci, ai, ti, cj, aj, tj,
-                        toward_cos_threshold=getattr(self, "toward_cos_threshold", 0.0),
-                        require_toward_line=getattr(self, "require_toward_line", True),
-                    )
-                    if not feasible:
-                        theta[arm_i, arm_j] = 0.0
-                        L[arm_i, arm_j] = 0.0
-                        P[arm_i, arm_j] = 0.0
-                        continue
-                else:
-                    # legacy: theta = arccos( ti · tj )
-                    th = angle_between(ti, tj)
+    def _compute_all_probs_batch(self, candidates: List[Tuple[int,int]]) -> Dict[Tuple[int,int], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
+        """Vectorized computation of theta, L, P for all candidate pairs in a single Numpy operation burst."""
+        if not candidates:
+            return {}
+            
+        E = len(candidates)
+        # Gather data, shape (E, 2, 3) 
+        A_i = np.empty((E, 2, 3), dtype=np.float64)
+        T_i = np.empty((E, 2, 3), dtype=np.float64)
+        A_j = np.empty((E, 2, 3), dtype=np.float64)
+        T_j = np.empty((E, 2, 3), dtype=np.float64)
+        
+        for idx, (i, j) in enumerate(candidates):
+            pi, pj = self.particles[i], self.particles[j]
+            A_i[idx, 0] = pi.a1; A_i[idx, 1] = pi.a2
+            T_i[idx, 0] = pi.t1; T_i[idx, 1] = pi.t2
+            A_j[idx, 0] = pj.a1; A_j[idx, 1] = pj.a2
+            T_j[idx, 0] = pj.t1; T_j[idx, 1] = pj.t2
 
-                # D = |aj - ai|
-                D = float(np.linalg.norm(aj - ai))
+        # Expand shapes to (E, 2, 2, 3) where dim 1 is arm_i, dim 2 is arm_j
+        A_i = A_i[:, :, None, :]
+        A_j = A_j[:, None, :, :]
+        T_i = T_i[:, :, None, :]
+        T_j = T_j[:, None, :, :]
+        
+        # Compute D = |A_j - A_i|
+        diff = A_j - A_i
+        D = np.linalg.norm(diff, axis=-1)
+        
+        # Compute angles robustly
+        n = np.where(D < 1e-12, 1.0, D)[..., None]
+        aij = diff / n
+        
+        dot_i = np.sum(T_i * aij, axis=-1)
+        dot_j = np.sum(T_j * (-aij), axis=-1)
+        
+        theta = np.zeros((E, 2, 2), dtype=np.float64)
+        feasible = np.ones((E, 2, 2), dtype=bool)
+        
+        if getattr(self, "theta_mode", "alpha_sum") == "alpha_sum":
+            if getattr(self, "require_toward_line", True):
+                thresh = getattr(self, "toward_cos_threshold", 0.0)
+                feasible = (dot_i >= thresh) & (dot_j >= thresh)
+            
+            alpha_i = np.arccos(np.clip(dot_i, -1.0, 1.0))
+            alpha_j = np.arccos(np.clip(dot_j, -1.0, 1.0))
+            theta = alpha_i + alpha_j
+            
+            # fallback for degenerate D
+            degen = D < 1e-12
+            if np.any(degen):
+                dot_fallback = np.sum(T_i * (-T_j), axis=-1)
+                theta[degen] = np.arccos(np.clip(dot_fallback[degen], -1.0, 1.0))
+                feasible[degen] = True
+        else:
+            # legacy tangent_tangent
+            dot_fallback = np.sum(T_i * T_j, axis=-1)
+            theta = np.arccos(np.clip(dot_fallback, -1.0, 1.0))
 
-                # L = theta * r, r = D / (2 sin(theta/2)); robust fallback handles tiny theta
-                Lij = arc_length_from_endpoints_and_angle(D, th)
-
-                # P(L, θ)
-                Pij = connection_probability(
-                    Lij, th, L0=self.L0, lp=self.lp,
-                    w_wlc=self.w_wlc, w_L=self.w_L, w_th=self.w_th, theta0_rad=self.theta0_rad
-                )
-                theta[arm_i, arm_j] = th
-                L[arm_i, arm_j] = (Lij if Lij is not None else 0.0)
-                P[arm_i, arm_j] = Pij
-
-        return theta, L, P
+        # Port pairing constraint
+        if self.port_pairing == "complement":
+            feasible[:, 0, 0] = False
+            feasible[:, 1, 1] = False
+            
+        theta[~feasible] = 0.0
+        
+        # Compute arc length L
+        eps = 1e-8
+        half = 0.5 * theta
+        s = np.sin(half)
+        
+        L = np.zeros_like(D)
+        small = np.abs(s) < eps
+        L[small] = D[small]
+        
+        normal = ~small
+        if np.any(normal):
+            r = D[normal] / (2.0 * s[normal])
+            invalid_r = r <= 0
+            
+            # map valid/invalid to the overall shape safely
+            full_invalid = np.zeros_like(feasible)
+            full_invalid[normal] = invalid_r
+            feasible[full_invalid] = False
+            
+            r[invalid_r] = 1.0 # purely to avoid nan in next step
+            L[normal] = theta[normal] * np.abs(r)
+            
+        L[~feasible] = 0.0
+        
+        # Build probability cache using exact legacy python float models
+        prob_cache = {}
+        for idx, (i, j) in enumerate(candidates):
+            t_ij = theta[idx]
+            l_ij = L[idx]
+            p_ij = np.zeros((2, 2), dtype=np.float64)
+            for arm_i in (0, 1):
+                for arm_j in (0, 1):
+                    if feasible[idx, arm_i, arm_j]:
+                        l_val = l_ij[arm_i, arm_j]
+                        t_val = t_ij[arm_i, arm_j]
+                        p_ij[arm_i, arm_j] = connection_probability(
+                            float(l_val), float(t_val), L0=self.L0, lp=self.lp,
+                            w_wlc=self.w_wlc, w_L=self.w_L, w_th=self.w_th, theta0_rad=self.theta0_rad
+                        )
+            prob_cache[(i, j)] = (t_ij, l_ij, p_ij)
+            
+        return prob_cache
 
 
     def run(self):
@@ -162,70 +216,78 @@ class LinkerAssigner:
         # Precompute candidates and probabilities
         candidates = self._pairwise_candidates()
 
-        # Storage for 3D probabilities: dict keyed by (i,j) -> (theta[2,2], L[2,2], P[2,2])
-        prob_cache: Dict[Tuple[int,int], Tuple[np.ndarray, np.ndarray, np.ndarray]] = {}
+        # Batch-compute all math in vector matrices
+        prob_cache = self._compute_all_probs_batch(candidates)
+        
+        # Max-Heap for greedy selection
+        # Format: (-Pval, tiebreaker, i, j, arm_i, arm_j)
+        import heapq
+        heap = []
+        counter = 0
+
         for (i, j) in candidates:
-            prob_cache[(i, j)] = self._compute_four_probs(i, j)
+            th_ij, L_ij, P_ij = prob_cache[(i, j)]
+            for arm_i in (0, 1):
+                for arm_j in (0, 1):
+                    Pval = P_ij[arm_i, arm_j]
+                    if Pval > 0.0:
+                        heapq.heappush(heap, (-Pval, counter, i, j, arm_i, arm_j))
+                        counter += 1
 
         # Greedy loop
-        while True:
-            # Find global max P over all feasible entries
-            best = None  # (Pval, i, j, arm_i, arm_j)
-            second_best_same_pair: Dict[Tuple[int,int], float] = {}
+        while heap:
+            neg_Pval, _, i, j, arm_i, arm_j = heapq.heappop(heap)
+            Pbest = -neg_Pval
 
-            for (i, j), (theta_ij, L_ij, P_ij) in prob_cache.items():
-                # Skip if already connected i-j
-                if j in self.adj[i]:
-                    continue
-                # Loop over four arm-arm combos
-                for arm_i in (0,1):
-                    for arm_j in (0,1):
-                        Pval = P_ij[arm_i, arm_j]
-                        if Pval <= 0.0:
-                            continue
-                        # respect one-connection-per-arm
-                        if self.arm_used[i, arm_i] or self.arm_used[j, arm_j]:
-                            continue
-                        # candidate for max
-                        if best is None or Pval > best[0]:
-                            best = (Pval, i, j, arm_i, arm_j)
-
-            # Stopping condition: no candidate
-            if best is None or best[0] < self.p_threshold:
+            # Stopping condition: top of max-heap is below threshold
+            if Pbest < self.p_threshold:
                 break
 
-            Pbest, i, j, arm_i, arm_j = best
+            # Check if either arm is already used
+            if self.arm_used[i, arm_i] or self.arm_used[j, arm_j]:
+                continue
+                
+            # Skip if already connected i-j
+            if j in self.adj[i]:
+                continue
 
             # Check cycle constraint via DSU on node-level
             if not dsu.union(i, j):
                 # would make a cycle; forbid this combination
-                # zero it out and continue searching again
-                theta_ij, L_ij, P_ij = prob_cache[(i, j)]
-                P_ij[arm_i, arm_j] = 0.0
-                prob_cache[(i, j)] = (theta_ij, L_ij, P_ij)
                 continue
 
-            # Compute Psecond for the same row (pair i,j) excluding the chosen arms
+            # Compute Psecond iteratively without mutating cache
+            # Psecond is the max probability among remaining unused arm combinations for (i,j)
             theta_ij, L_ij, P_ij = prob_cache[(i, j)]
-            chosen = P_ij[arm_i, arm_j]
-            # second best across remaining combos of this pair (excluding chosen cell)
-            mask = np.ones_like(P_ij, dtype=bool)
-            mask[arm_i, arm_j] = False
-            Psecond = float(P_ij[mask].max()) if np.any(mask) else 0.0
-            ratio = (chosen / Psecond) if Psecond > 0 else float('inf')
+            Psecond = 0.0
+            
+            for ai in (0, 1):
+                for aj in (0, 1):
+                    if ai == arm_i and aj == arm_j:
+                        continue
+                        
+                    # Skip if the alternative arm is already occupied by a prior edge
+                    if self.arm_used[i, ai] or self.arm_used[j, aj]:
+                        continue
+                        
+                    Pval2 = P_ij[ai, aj]
+                    if Pval2 > Psecond:
+                        Psecond = float(Pval2)
 
-            # Accept the edge
+            ratio = (Pbest / Psecond) if Psecond > 0 else float('inf')
+
+            # Accept the edge tracking states
             self.adj[i].append(j)
             self.adj[j].append(i)
             self.arm_used[i, arm_i] = True
             self.arm_used[j, arm_j] = True
 
-            # Compute D on-the-fly for the chosen arms to avoid changing caches:
+            # Compute D on-the-fly for the chosen arms:
             ai_sel = self.particles[i].arm_point(arm_i)   # endpoint on i for the chosen arm
             aj_sel = self.particles[j].arm_point(arm_j)   # endpoint on j for the chosen arm
             D_sel = float(np.linalg.norm(aj_sel - ai_sel))
 
-            # Save assignment (now includes D and psecond)
+            # Save assignment
             la = LinkerAssignment(
                 i=i, j=j,
                 arm_i=arm_i, arm_j=arm_j,
@@ -237,25 +299,5 @@ class LinkerAssigner:
                 pmax_over_psecond=ratio
             )
             self.assignments.append(la)
-
-            # Zero-out (i, j, all arms) to avoid duplicate i-j connections
-            P_ij[:, :] = 0.0
-            prob_cache[(i, j)] = (theta_ij, L_ij, P_ij)
-
-            # Also zero-out all entries that reuse the used arms on i or j with any other partner
-            for (u, v), (th_uv, L_uv, P_uv) in prob_cache.items():
-                if u == i or v == i:
-                    # zero any cell that uses i's chosen arm
-                    if u == i:
-                        P_uv[arm_i, :] = 0.0
-                    if v == i:
-                        P_uv[:, arm_i] = 0.0
-                    prob_cache[(u, v)] = (th_uv, L_uv, P_uv)
-                if u == j or v == j:
-                    if u == j:
-                        P_uv[arm_j, :] = 0.0
-                    if v == j:
-                        P_uv[:, arm_j] = 0.0
-                    prob_cache[(u, v)] = (th_uv, L_uv, P_uv)
 
         return self.assignments, self.adj
