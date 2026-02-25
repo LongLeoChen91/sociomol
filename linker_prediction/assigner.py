@@ -24,7 +24,11 @@ class LinkerAssigner:
                  lp: float = 1.5, L0: float = 20.0,
                  dist_cutoff_nm: float = 20.0, p_threshold: float = 0.1,
                  w_wlc: float = 1.0, w_L: float = 1.0, w_th: float = 1.0,
+                 w_L_sq: float = 0.0, w_th_sq: float = 0.0,
                  theta0_deg: float = 45.0,
+                 l_ideal_nm: float = 20.0,
+                 l_std_nm: float = 10.0,
+                 theta_std_deg: float = 45.0,
                  theta_mode: str = "alpha_sum",            # mode for angle calculation
                  require_toward_line: bool = True,         # require tangents pointing toward the arm-line
                  toward_cos_threshold: float = 0.0,       # cosine threshold for orientation constraint
@@ -60,7 +64,12 @@ class LinkerAssigner:
         self.w_wlc = w_wlc
         self.w_L = w_L
         self.w_th = w_th
+        self.w_L_sq = w_L_sq
+        self.w_th_sq = w_th_sq
         self.theta0_rad = math.radians(theta0_deg)
+        self.L_ideal = l_ideal_nm
+        self.L_std = l_std_nm
+        self.theta_std_rad = math.radians(theta_std_deg)
 
         # New configuration options
         self.theta_mode = theta_mode
@@ -202,7 +211,11 @@ class LinkerAssigner:
                         t_val = t_ij[arm_i, arm_j]
                         p_ij[arm_i, arm_j] = connection_probability(
                             float(l_val), float(t_val), L0=self.L0, lp=self.lp,
-                            w_wlc=self.w_wlc, w_L=self.w_L, w_th=self.w_th, theta0_rad=self.theta0_rad
+                            w_wlc=self.w_wlc, w_L=self.w_L, w_th=self.w_th, 
+                            w_L_sq=self.w_L_sq, w_th_sq=self.w_th_sq,
+                            theta0_rad=self.theta0_rad,
+                            L_ideal=self.L_ideal, L_std=self.L_std,
+                            theta_std_rad=self.theta_std_rad
                         )
             prob_cache[(i, j)] = (t_ij, l_ij, p_ij)
             

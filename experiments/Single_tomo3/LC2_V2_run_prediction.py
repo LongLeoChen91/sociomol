@@ -14,11 +14,11 @@ OUTPUT_STAR = "H1_DoubleLinker_annotated.star"
 EDGES_CSV   = "DoubleLinker_edges.csv"
 
 PIXEL_SIZE_A  = 11.64               # Å/pixel
-DIST_CUTOFF_NM = 20                 # [nm] Arm–arm distance cutoff
-P_THRESHOLD = 0.03                 # Probability threshold for assignment
+DIST_CUTOFF_NM = 30                 # [nm] Arm–arm distance cutoff
+P_THRESHOLD = 0.01                 # Probability threshold for assignment
 
 # ==========================================
-# 2. Triple-term Energy Model Configuration
+# 2. Five-term Energy Model Configuration
 # P(L, θ) ∝ exp( -W_WLC*E_wlc - W_L*E_len - W_TH*E_ang )
 # ==========================================
 
@@ -29,8 +29,15 @@ THETA0_DEG = 45                   # [deg] Reference angle for angle penalty
 
 # -- B. Formula Component Weights --
 W_WLC = 0                           # Weight for WLC bending energy
-W_L = 1.0                             # Weight for linear distance penalty
-W_TH = 1                            # Weight for relative angle tolerance
+W_L = 0                             # Weight for linear distance penalty
+W_TH = 0                            # Weight for relative angle tolerance
+
+# -- Sub-Gaussian Penalties (Squared bounds) --
+W_L_SQ = 1.0                        # Weight for squared distance penalty
+W_TH_SQ = 1.0                       # Weight for squared angle penalty
+L_IDEAL_NM = 0                  # [nm] Ideal distance for squared penalty
+L_STD_NM = 20.0                     # [nm] Distance tolerance (std dev)
+THETA_STD_DEG = 90.0                # [deg] Angular tolerance (std dev)
 
 # -- C. Geometry & Structural Constraints --
 PORT_PAIRING = "any"                # "any" (all pairs) or "complement" (forbid 0->0, 1->1)
@@ -41,7 +48,7 @@ PORT_PAIRING = "any"                # "any" (all pairs) or "complement" (forbid 
 THETA_MODE = "alpha_sum"            
 
 REQUIRE_TOWARD_LINE = True          # Require arms pointing toward connection line
-TOWARD_COS_THRESHOLD = 0.8          # Angle with line threshold (0.0 for <90°)
+TOWARD_COS_THRESHOLD = 0.5          # Angle with line threshold (0.0 for <90°)
 
 if __name__ == "__main__":
     run_prediction_pipeline(
@@ -56,6 +63,11 @@ if __name__ == "__main__":
         w_wlc=W_WLC,
         w_L=W_L,
         w_th=W_TH,
+        w_L_sq=W_L_SQ,
+        w_th_sq=W_TH_SQ,
+        l_ideal_nm=L_IDEAL_NM,
+        l_std_nm=L_STD_NM,
+        theta_std_deg=THETA_STD_DEG,
         theta0_deg=THETA0_DEG,
         port_pairing=PORT_PAIRING,
         theta_mode=THETA_MODE,

@@ -35,10 +35,18 @@ LP = 50                     # (nm) Persistence length (e.g., 1.5 for mRNA, 50 fo
 L0 = 20                    # (nm) Reference length (ideally connection length)
 THETA0_DEG = 45            # (deg) Angular tolerance
 W_WLC = 0                # Weight for worm-like chain (bending) energy
-W_L = 1                  # Weight for length penalty
-W_TH = 1                # Weight for angular penalty
+W_L = 0                 # Weight for length penalty
+W_TH = 0                # Weight for angular penalty
+
+# --- Sub-Gaussian Penalties (Squared bounds) ---
+W_L_SQ = 1            # Weight for squared distance penalty
+W_TH_SQ = 1           # Weight for squared angle penalty
+L_IDEAL = 0          # (nm) Ideal distance (center of the Gaussian)
+L_STD = 20            # (nm) Distance tolerance (standard deviation)
+THETA_STD_DEG = 90    # (deg) Angular tolerance (standard deviation)
+
 # --- Plotting Visuals : 2D Overlay Map ---
-CONTOUR_THRESHOLDS = [0.01,P_THRESHOLD_MAP]
+CONTOUR_THRESHOLDS = [0.01,0.37]
 
 # --- Plotting Visuals : 1D Length Distribution ---
 FIT_MODE = "single"          # "single" for normal Gaussian, "gmm" for Gaussian Mixture

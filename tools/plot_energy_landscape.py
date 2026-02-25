@@ -6,7 +6,7 @@ import os
 # Set working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from config_plot import CSV_PATH, P_THRESHOLD_MAP, LP, L0, THETA0_DEG, W_WLC, W_L, W_TH, CONTOUR_THRESHOLDS
+from config_plot import CSV_PATH, P_THRESHOLD_MAP, LP, L0, THETA0_DEG, W_WLC, W_L, W_TH, W_L_SQ, W_TH_SQ, L_IDEAL, L_STD, THETA_STD_DEG, CONTOUR_THRESHOLDS
 
 # ============================================================
 # 1. Configuration
@@ -54,14 +54,18 @@ L_grid, theta_grid_rad = np.meshgrid(L_vals, theta_vals_rad)
 _, theta_grid_deg = np.meshgrid(L_vals, theta_vals_deg)
 
 theta0 = np.deg2rad(THETA0_DEG)
-if theta0 <= 0:
-    raise ValueError("theta0_deg must be > 0")
+theta_std = np.deg2rad(THETA_STD_DEG)
+if theta0 <= 0 or theta_std <= 0:
+    raise ValueError("theta0_deg and theta_std_deg must be > 0")
 
 E_wlc = (2.0 * LP / L_grid) * (0.5 * theta_grid_rad) ** 2
 E_len = (L_grid / L0)
 E_ang = (0.5 * theta_grid_rad) / theta0
 
-E_total = W_WLC * E_wlc + W_L * E_len + W_TH * E_ang
+E_len_sq = ((L_grid - L_IDEAL) / L_STD)**2
+E_ang_sq = (theta_grid_rad / theta_std)**2
+
+E_total = (W_WLC * E_wlc) + (W_L * E_len) + (W_TH * E_ang) + (W_L_SQ * E_len_sq) + (W_TH_SQ * E_ang_sq)
 P = np.exp(-E_total)
 
 # ============================================================
@@ -128,8 +132,10 @@ ax.set_ylabel("Bending angle θ (degrees)", fontsize=13)
 ax.set_title(
     "Prediction Verification vs Linker Probability Map\n"
     f"lp={LP:g} nm, L0={L0:g} nm, θ0={THETA0_DEG:g}° | "
-    f"w_wlc={W_WLC:g}, w_L={W_L:g}, w_th={W_TH:g}",
-    fontsize=12,
+    f"w_wlc={W_WLC:g}, w_L={W_L:g}, w_th={W_TH:g} \n"
+    f"L_ideal={L_IDEAL:g}, L_std={L_STD:g}, th_std={THETA_STD_DEG:g}° | "
+    f"w_L_sq={W_L_SQ:g}, w_th_sq={W_TH_SQ:g}",
+    fontsize=10,
     pad=12
 )
 
