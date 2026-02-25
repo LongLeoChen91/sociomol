@@ -15,7 +15,7 @@ EDGES_CSV   = "DoubleLinker_edges.csv"
 
 PIXEL_SIZE_A  = 8.0                 # Å/pixel
 DIST_CUTOFF_NM = 20                 # [nm] Arm–arm distance cutoff
-P_THRESHOLD = 0.0001                  # Probability threshold for assignment
+P_THRESHOLD = 0.001                  # Probability threshold for assignment
 
 # ==========================================
 # 2. Triple-term Energy Model Configuration
@@ -23,13 +23,13 @@ P_THRESHOLD = 0.0001                  # Probability threshold for assignment
 # ==========================================
 
 # -- A. Physics Base Parameters --
-LP_NM = 50                         # [nm] Persistence length (bending stiffness)
-L0_NM = 10.0                        # [nm] Reference length (ideal connection distance)
+LP_NM = 10                         # [nm] Persistence length (bending stiffness)
+L0_NM = 15.0                        # [nm] Reference length (ideal connection distance)
 THETA0_DEG = 45.0                   # [deg] Reference angle for angle penalty
 
 # -- B. Formula Component Weights --
-W_WLC = 1                         # Weight for WLC bending energy
-W_L = 1.0                           # Weight for linear distance penalty
+W_WLC = 0                         # Weight for WLC bending energy
+W_L = 1                           # Weight for linear distance penalty
 W_TH = 1                          # Weight for relative angle tolerance
 
 # -- C. Geometry & Structural Constraints --
@@ -41,7 +41,7 @@ PORT_PAIRING = "any"                # "any" (all pairs) or "complement" (forbid 
 THETA_MODE = "alpha_sum"            
 
 REQUIRE_TOWARD_LINE = True          # Require arms pointing toward connection line
-TOWARD_COS_THRESHOLD = 0.0          # Angle with line threshold (0.0 for <90°)
+TOWARD_COS_THRESHOLD = 0          # Angle with line threshold (0.0 for <90°)
 
 if __name__ == "__main__":
     run_prediction_pipeline(
