@@ -10,7 +10,7 @@ from skimage.filters import threshold_otsu
 # Set working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from config_plot import CSV_PATH, P_THRESHOLD_MAP
+from config_plot import CSV_PATH, P_THRESHOLD_MAP, R_OFFSET_NM, L_MIN_NM
 
 # ============================================================
 # 1. Configuration & Data Loading
@@ -25,7 +25,12 @@ df_sub = df_sub.dropna(subset=[THETA_COL, L_COL])
 x = df_sub[L_COL].values
 y = df_sub[THETA_COL].values
 
-print(f"[INFO] Loaded {len(x)} points from CSV")
+# --- Geometric correction: match coordinate system of estimate_effective_Lp.py ---
+x = x - 2.0 * R_OFFSET_NM
+valid = x > L_MIN_NM
+x, y = x[valid], y[valid]
+
+print(f"[INFO] Loaded {len(df_sub)} points; {len(x)} remain after L correction (R_OFFSET={R_OFFSET_NM} nm)")
 if len(x) < 2:
     print("[ERROR] Not enough points.")
     exit()
@@ -99,12 +104,9 @@ for title, thresh, mask, ax in methods:
         cs = ax.contour(x_grid, y_grid, z_grid, levels=[thresh], colors='red', linewidths=2, linestyles="--")
         ax.clabel(cs, fmt=f"{thresh:.5f}", inline=True, fontsize=10, colors='red')
 
-    # Scatter Noise and Pattern
-    df_noise = df_sub[~mask]
-    df_pattern = df_sub[mask]
-    
-    ax.scatter(df_noise[L_COL], df_noise[THETA_COL], s=8, color='grey', alpha=0.4, label='Noise')
-    ax.scatter(df_pattern[L_COL], df_pattern[THETA_COL], s=20, color='red', alpha=0.9, edgecolor='black', linewidth=0.5, label='Pattern')
+    # Scatter Noise and Pattern using x/y arrays (already corrected & filtered)
+    ax.scatter(x[~mask], y[~mask], s=8, color='grey', alpha=0.4, label='Noise')
+    ax.scatter(x[mask],  y[mask],  s=20, color='red', alpha=0.9, edgecolor='black', linewidth=0.5, label='Pattern')
     
     ax.set_title(f"{title}\nPatterns: {np.sum(mask)} | Noise: {np.sum(~mask)}", fontsize=11)
     ax.set_xlabel("Length L (nm)")
@@ -123,4 +125,4 @@ out_png = "theta_vs_L_4methods_comparison.png"
 fig.savefig(out_png, dpi=300)
 plt.show()
 
-print(f"✅ 4-way comparison map saved as '{out_png}'")
+print(f"[OK] 4-way comparison map saved as '{out_png}'")

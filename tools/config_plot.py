@@ -34,7 +34,7 @@ P_THRESHOLD_DIST = 0       # Applied to the 1D length distribution histogram
 # L_true = L_measured - 2 * R_OFFSET_NM
 # Ribosome (A-site/E-site to surface): 10–15 nm
 # Nucleosome (DNA exit at surface):      0 nm
-R_OFFSET_NM = 0         # (nm) rigid-body offset per arm; set 0 to disable
+R_OFFSET_NM = 5         # (nm) rigid-body offset per arm; set 0 to disable
 L_MIN_NM    = 1.0         # (nm) outlier floor after correction
 
 # --- Energy Model Physics Constants (For 2D Energy Landscape) ---
