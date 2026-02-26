@@ -15,7 +15,7 @@ EDGES_CSV   = "DoubleLinker_edges.csv"
 
 PIXEL_SIZE_A  = 8.0                 # Å/pixel
 DIST_CUTOFF_NM = 20                 # [nm] Arm–arm distance cutoff
-P_THRESHOLD = 0.001                  # Probability threshold for assignment
+P_THRESHOLD = 0.01                  # Probability threshold for assignment
 
 # ==========================================
 # 2. Five-term Energy Model Configuration
@@ -28,9 +28,9 @@ L0_NM = 15.0                        # [nm] Reference length (ideal connection di
 THETA0_DEG = 45.0                   # [deg] Reference angle for angle penalty
 
 # -- B. Formula Component Weights --
-W_WLC = 0                         # Weight for WLC bending energy
-W_L = 1                           # Weight for linear distance penalty
-W_TH = 1                          # Weight for relative angle tolerance
+W_WLC = 1                         # Weight for WLC bending energy
+W_L = 0                           # Weight for linear distance penalty
+W_TH = 0                          # Weight for relative angle tolerance
 
 # -- Sub-Gaussian Penalties (Squared bounds) --
 W_L_SQ = 0.0                        # Weight for squared distance penalty
