@@ -14,7 +14,7 @@ OUTPUT_STAR = "H1_DoubleLinker_annotated.star"
 EDGES_CSV   = "DoubleLinker_edges.csv"
 
 PIXEL_SIZE_A  = 11.64               # Å/pixel
-DIST_CUTOFF_NM = 30                 # [nm] Arm–arm distance cutoff
+DIST_CUTOFF_NM = 20                 # [nm] Arm–arm distance cutoff
 P_THRESHOLD = 0.03                 # Probability threshold for assignment
 
 # ==========================================
@@ -48,7 +48,7 @@ PORT_PAIRING = "any"                # "any" (all pairs) or "complement" (forbid 
 THETA_MODE = "alpha_sum"            
 
 REQUIRE_TOWARD_LINE = True          # Require arms pointing toward connection line
-TOWARD_COS_THRESHOLD = 0          # Angle with line threshold (0.0 for <90°)
+TOWARD_COS_THRESHOLD = 0.8          # Angle with line threshold (0.0 for <90°)
 
 if __name__ == "__main__":
     run_prediction_pipeline(

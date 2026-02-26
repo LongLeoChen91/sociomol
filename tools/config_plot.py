@@ -30,6 +30,13 @@ CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260
 P_THRESHOLD_MAP = 0       # Applied to the 2D energy landscape overlay
 P_THRESHOLD_DIST = 0       # Applied to the 1D length distribution histogram
 
+# --- Geometric L correction (for estimate_effective_Lp.py) ---
+# L_true = L_measured - 2 * R_OFFSET_NM
+# Ribosome (A-site/E-site to surface): 10–15 nm
+# Nucleosome (DNA exit at surface):      0 nm
+R_OFFSET_NM = 9         # (nm) rigid-body offset per arm; set 0 to disable
+L_MIN_NM    = 1.0         # (nm) outlier floor after correction
+
 # --- Energy Model Physics Constants (For 2D Energy Landscape) ---
 LP = 50                     # (nm) Persistence length (e.g., 1.5 for mRNA, 50 for DNA)
 L0 = 20                    # (nm) Reference length (ideally connection length)

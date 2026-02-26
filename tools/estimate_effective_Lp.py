@@ -44,7 +44,7 @@ sys.path.insert(0, _REPO_ROOT)
 os.chdir(_SCRIPT_DIR)
 
 from linker_prediction.probability import bending_energy_lp  # for consistency check
-from config_plot import CSV_PATH, P_THRESHOLD_MAP
+from config_plot import CSV_PATH, P_THRESHOLD_MAP, R_OFFSET_NM, L_MIN_NM
 
 # ============================================================
 # 1. Configuration
@@ -52,9 +52,11 @@ from config_plot import CSV_PATH, P_THRESHOLD_MAP
 THETA_COL = "theta_deg"
 L_COL     = "L_nm"
 
-LP_MIN    = 1.0       # nm - lower bound of sweep
-LP_MAX    = 300.0     # nm - upper bound of sweep
+LP_MIN    = 0.5       # nm - lower bound of sweep
+LP_MAX    = 100.0     # nm - upper bound of sweep
 LP_STEPS  = 600       # resolution of parameter sweep
+
+# R_OFFSET_NM and L_MIN_NM are imported from config_plot.py
 
 # ============================================================
 # 2. Data Loading & Filtering
@@ -164,8 +166,12 @@ def analytic_lp_star(L_arr: np.ndarray, theta_rad_arr: np.ndarray) -> float:
 lp_range = np.linspace(LP_MIN, LP_MAX, LP_STEPS)
 
 fig, axes = plt.subplots(2, 3, figsize=(18, 9))
-fig.suptitle("Effective $L_p$ Estimation via WLC-MLE\n(NLL curve per signal detection method)",
-             fontsize=13, y=1.01)
+_corr_label = f"$L_{{true}} = L_{{meas}} - 2\\times{R_OFFSET_NM:.0f}$ nm" if R_OFFSET_NM > 0 else "No length correction"
+fig.suptitle(
+    f"Effective $L_p$ Estimation via WLC-MLE\n"
+    f"(NLL curve per signal detection method  |  {_corr_label},  outlier floor {L_MIN_NM:.0f} nm)",
+    fontsize=12, y=1.01
+)
 
 for ax, (title, mask) in zip(axes.flat, methods):
     N_mask = np.sum(mask)
@@ -176,8 +182,24 @@ for ax, (title, mask) in zip(axes.flat, methods):
                 transform=ax.transAxes, fontsize=10, color="grey")
         continue
 
-    L_m     = x[mask]
-    th_m    = y_rad[mask]
+    L_m_raw = x[mask]
+    th_m_raw = y_rad[mask]
+
+    # --- Geometric correction: subtract rigid-body offset ---
+    L_m_corr = L_m_raw - 2.0 * R_OFFSET_NM
+
+    # --- Outlier filtering: remove physically impossible points ---
+    valid = L_m_corr > L_MIN_NM
+    n_outliers = np.sum(~valid)
+    L_m   = L_m_corr[valid]
+    th_m  = th_m_raw[valid]
+
+    if len(L_m) < 5:
+        ax.set_title(f"{title}\nToo few valid points after correction ({len(L_m)})")
+        ax.text(0.5, 0.5, "Increase R_OFFSET_NM or check data", ha="center", va="center",
+                transform=ax.transAxes, fontsize=9, color="firebrick")
+        print(f"[{title}]  N_raw={np.sum(mask):4d}  outliers={n_outliers}  → too few valid points")
+        continue
 
     # NLL curve
     nll     = compute_nll_curve(L_m, th_m, lp_range)
@@ -199,14 +221,14 @@ for ax, (title, mask) in zip(axes.flat, methods):
                     fontsize=9, color="red",
                     arrowprops=dict(arrowstyle="->", color="red", lw=1.2))
 
-    ax.set_title(f"{title}  (N={N_mask})", fontsize=10)
+    ax.set_title(f"{title}  (N_raw={N_mask}, N_valid={len(L_m)}, outliers={n_outliers})", fontsize=9)
     ax.set_xlabel("$L_p$ (nm)")
     ax.set_ylabel("NLL (relative)")
     ax.legend(fontsize=9)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
-    print(f"[{title}]  N={N_mask:4d}  Lp* = {lp_star:.2f} nm")
+    print(f"[{title}]  N_raw={N_mask:4d}  outliers={n_outliers:3d}  N_valid={len(L_m):4d}  Lp* = {lp_star:.2f} nm")
 
 plt.tight_layout()
 # Hide unused 6th panel (2x3 grid has 6 slots, we use 5)
@@ -215,4 +237,4 @@ axes.flat[-1].set_visible(False)
 out_png = "estimate_Lp_5methods.png"
 fig.savefig(out_png, dpi=200, bbox_inches="tight")
 plt.show()
-print(f"\n✅ Saved: {out_png}")
+print(f"\n[OK] Saved: {out_png}")
