@@ -29,12 +29,12 @@ THETA0_DEG = 45.0                   # [deg] Reference angle for angle penalty
 
 # -- B. Formula Component Weights --
 W_WLC = 0                         # Weight for WLC bending energy
-W_L = 0                           # Weight for linear distance penalty
-W_TH = 0                            # Weight for relative angle tolerance
+W_L = 1                           # Weight for linear distance penalty
+W_TH = 1                            # Weight for relative angle tolerance
 
 # -- Sub-Gaussian Penalties (Squared bounds) --
-W_L_SQ = 1.0                        # Weight for squared distance penalty
-W_TH_SQ = 1.0                       # Weight for squared angle penalty
+W_L_SQ = 0                        # Weight for squared distance penalty
+W_TH_SQ = 0                       # Weight for squared angle penalty
 L_IDEAL_NM = 0                   # [nm] Ideal distance for squared penalty
 L_STD_NM = 20.0                     # [nm] Distance tolerance (std dev)
 THETA_STD_DEG = 90.0                # [deg] Angular tolerance (std dev)
