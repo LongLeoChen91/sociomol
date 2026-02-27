@@ -15,7 +15,7 @@ EDGES_CSV   = "Linker_edges.csv"
 
 PIXEL_SIZE_A  = 1.96                # Å/pixel
 DIST_CUTOFF_NM = 40                 # [nm] Arm–arm distance cutoff
-P_THRESHOLD = 0.01                   # Probability threshold for assignment
+P_THRESHOLD = 0.05                   # Probability threshold for assignment
 
 # ==========================================
 # 2. Five-term Energy Model Configuration
