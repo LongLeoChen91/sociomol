@@ -49,7 +49,7 @@ _EXP_DIR  = os.path.dirname(CSV_PATH)
 # Sliding window parameters
 WINDOW_RADIUS_NM = 50.0   # half-diameter of the circular window (nm)
 STRIDE_NM        = 15.0   # grid evaluation spacing (nm)
-N_MIN            = 5      # minimum linkers per window for reliable Lp*
+N_MIN            = 20      # minimum linkers per window for reliable Lp*; 5
 
 # Column names
 THETA_COL = "theta_deg"
@@ -67,7 +67,7 @@ PIXEL_SIZE_NM = 1.513 / 10.0   # nm per pixel for FV3h24_2005010012
 
 # Colourmap limits (nm) — log scale
 LP_VMIN = 5.0
-LP_VMAX = 50.0
+LP_VMAX = 20.0
 
 # ============================================================
 # 2. Locate annotated STAR file (same dir as CSV)
