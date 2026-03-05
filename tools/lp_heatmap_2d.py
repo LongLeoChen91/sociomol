@@ -15,7 +15,11 @@ Algorithm
          collect all linkers within WINDOW_RADIUS_NM in XY
          if N_valid >= N_MIN:
              Lp*(xi,yi) = 2*N / Σ(θ²/L)   [WLC-MLE analytic]
-6. Plot pcolormesh heatmap with raw linker positions overlaid
+             CR(xi,yi)  = sqrt(2/N) * 100  [Cramér-Rao relative error, %]
+6. Plot 3-panel figure:
+     Panel 1: Lp* heatmap (log scale, fixed colorbar ticks)
+     Panel 2: N linkers per window cell
+     Panel 3: Cramér-Rao relative error map (reliability indicator)
 
 Author: Long Chen
 """
@@ -24,6 +28,7 @@ import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.ticker as mticker
 import pandas as pd
 import starfile
 
@@ -125,6 +130,7 @@ xi_vals = np.arange(X_v.min(), X_v.max(), STRIDE_NM)
 yi_vals = np.arange(Y_v.min(), Y_v.max(), STRIDE_NM)
 Lp_map  = np.full((len(yi_vals), len(xi_vals)), np.nan)
 N_map   = np.zeros((len(yi_vals), len(xi_vals)), dtype=int)
+CR_map  = np.full((len(yi_vals), len(xi_vals)), np.nan)   # Cramér-Rao rel. error (%)
 
 print(f"[INFO] Grid: {len(xi_vals)} × {len(yi_vals)}  "
       f"(stride={STRIDE_NM} nm, radius={WINDOW_RADIUS_NM} nm)")
@@ -142,6 +148,7 @@ for j, yi in enumerate(yi_vals):
         denom = np.sum(T_v[mask] ** 2 / L_v[mask])
         if denom > 0:
             Lp_map[j, i] = 2.0 * N / denom
+        CR_map[j, i] = np.sqrt(2.0 / N) * 100.0   # Cramér-Rao bound (%)
 
 # stats
 valid_cells = ~np.isnan(Lp_map)
@@ -151,10 +158,10 @@ print(f"[INFO] Lp* range: {np.nanmin(Lp_map):.1f} – {np.nanmax(Lp_map):.1f} nm
 # ============================================================
 # 7. Plot
 # ============================================================
-fig, axes = plt.subplots(1, 2, figsize=(14, 6),
-                         gridspec_kw={"width_ratios": [1.0, 0.85]})
+fig, axes = plt.subplots(1, 3, figsize=(20, 6),
+                         gridspec_kw={"width_ratios": [1.0, 0.85, 0.85]})
 
-# --- Panel 1: Lp* heatmap ---
+# --- Panel 1: Lp* heatmap (log scale, fixed colorbar ticks) ---
 ax = axes[0]
 norm = mcolors.LogNorm(vmin=LP_VMIN, vmax=LP_VMAX)
 im = ax.pcolormesh(xi_vals, yi_vals, Lp_map,
@@ -176,21 +183,48 @@ ax.set_title(
 ax.legend(fontsize=8, markerscale=5, loc="upper right")
 cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.02)
 cb.set_label(r"$L_p^*$  (nm)", fontsize=10)
+# Use explicit tick values so colorbar shows plain numbers, not scientific notation
+_lp_ticks = [t for t in [5, 6, 8, 10, 15, 20, 30, 50]
+              if LP_VMIN <= t <= LP_VMAX]
+cb.set_ticks(_lp_ticks)
+cb.set_ticklabels([str(t) for t in _lp_ticks])
 ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
 
-# --- Panel 2: N points per cell ---
+# --- Panel 2: N linkers per window cell ---
 ax2 = axes[1]
 im2 = ax2.pcolormesh(xi_vals, yi_vals, N_map,
                      cmap="viridis", shading="auto")
 ax2.set_aspect("equal")
 ax2.set_xlabel("X  (nm)", fontsize=11)
-ax2.set_title(f"N linkers per window cell\n(grey = < {N_MIN} → Lp* = NaN)",
+ax2.set_title(f"N linkers per window cell\n(white = < {N_MIN} → Lp* = NaN)",
               fontsize=10)
 cb2 = fig.colorbar(im2, ax=ax2, fraction=0.046, pad=0.02)
 cb2.set_label("N linkers", fontsize=10)
+cb2.ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%d"))
 ax2.spines["top"].set_visible(False)
 ax2.spines["right"].set_visible(False)
+
+# --- Panel 3: Cramér-Rao relative error (reliability indicator) ---
+# CR(%) = sqrt(2/N) * 100.  Lower = more reliable estimate.
+ax3 = axes[2]
+im3 = ax3.pcolormesh(xi_vals, yi_vals, CR_map,
+                     cmap="YlOrRd", shading="auto",
+                     vmin=0, vmax=100)
+ax3.set_aspect("equal")
+ax3.set_xlabel("X  (nm)", fontsize=11)
+ax3.set_title(
+    r"Cramér-Rao relative error  $\sqrt{2/N}$"
+    f"\n(NaN where N < {N_MIN}; lower = more reliable)",
+    fontsize=10
+)
+cb3 = fig.colorbar(im3, ax=ax3, fraction=0.046, pad=0.02)
+cb3.set_label(r"Rel. error  (%)", fontsize=10)
+cb3.ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%d%%"))
+ax3.spines["top"].set_visible(False)
+ax3.spines["right"].set_visible(False)
+
+print(f"[INFO] CR range: {np.nanmin(CR_map):.1f}% – {np.nanmax(CR_map):.1f}%")
 
 plt.tight_layout()
 out_png = "lp_heatmap_2d.png"
