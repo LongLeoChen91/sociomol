@@ -9,13 +9,13 @@ from linker_prediction import run_prediction_pipeline
 # ==========================================
 # 1. Configuration
 # ==========================================
-INPUT_STAR  = "H1_Linkers_IDandName_s139_merge_fiber_particles_with_origin.star"
+INPUT_STAR  = "subset_H1_DoubleLinker_deduplicated_subtomo_coords_C2cc5.star"
 OUTPUT_STAR = "H1_DoubleLinker_annotated.star"
 EDGES_CSV   = "DoubleLinker_edges.csv"
 
-PIXEL_SIZE_A  = 8.0                 # Å/pixel
-DIST_CUTOFF_NM = 20                 # [nm] Arm–arm distance cutoff
-P_THRESHOLD = 0.01                  # Probability threshold for assignment
+PIXEL_SIZE_A  = 1.513               # Å/pixel
+DIST_CUTOFF_NM = 30                 # [nm] Arm–arm distance cutoff
+P_THRESHOLD = 0.03                 # Probability threshold for assignment
 
 # ==========================================
 # 2. Five-term Energy Model Configuration
@@ -23,21 +23,21 @@ P_THRESHOLD = 0.01                  # Probability threshold for assignment
 # ==========================================
 
 # -- A. Physics Base Parameters --
-LP_NM = 50                         # [nm] Persistence length (bending stiffness)
-L0_NM = 15.0                        # [nm] Reference length (ideal connection distance)
-THETA0_DEG = 45.0                   # [deg] Reference angle for angle penalty
+LP_NM = 50                          # [nm] Persistence length (bending stiffness)
+L0_NM = 20                        # [nm] Reference length (ideal connection distance)
+THETA0_DEG = 45                   # [deg] Reference angle for angle penalty
 
 # -- B. Formula Component Weights --
-W_WLC = 1                         # Weight for WLC bending energy
-W_L = 1                           # Weight for linear distance penalty
-W_TH = 1                          # Weight for relative angle tolerance
+W_WLC = 0                           # Weight for WLC bending energy
+W_L = 1                             # Weight for linear distance penalty
+W_TH = 1                            # Weight for relative angle tolerance
 
 # -- Sub-Gaussian Penalties (Squared bounds) --
-W_L_SQ = 0.0                        # Weight for squared distance penalty
-W_TH_SQ = 0.0                       # Weight for squared angle penalty
-L_IDEAL_NM = 20.0                   # [nm] Ideal distance for squared penalty
-L_STD_NM = 10.0                     # [nm] Distance tolerance (std dev)
-THETA_STD_DEG = 30.0                # [deg] Angular tolerance (std dev)
+W_L_SQ = 0                        # Weight for squared distance penalty
+W_TH_SQ = 0                       # Weight for squared angle penalty
+L_IDEAL_NM = 0                  # [nm] Ideal distance for squared penalty
+L_STD_NM = 20.0                     # [nm] Distance tolerance (std dev)
+THETA_STD_DEG = 90.0                # [deg] Angular tolerance (std dev)
 
 # -- C. Geometry & Structural Constraints --
 PORT_PAIRING = "any"                # "any" (all pairs) or "complement" (forbid 0->0, 1->1)

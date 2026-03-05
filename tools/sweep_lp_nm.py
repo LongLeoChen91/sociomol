@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 
 # Paths
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# exp_dir = os.path.join(base_dir, "experiments", "MR_arm2_0_di30_139_BaseOnEndDensity")
-exp_dir = os.path.join(base_dir, "experiments", "MR_arm2_0_di25_72_BaseOnEndDensity")
+exp_dir = os.path.join(base_dir, "experiments", "MR_arm2_0_di30_139_BaseOnEndDensity")
+# exp_dir = os.path.join(base_dir, "experiments", "MR_arm2_0_di25_72_BaseOnEndDensity")
 pred_script = os.path.join(exp_dir, "LC2_V2_run_prediction.py")
 eval_script = os.path.join(base_dir, "tools", "evaluate_predictions.py")
 
-# truth_csv = os.path.join(exp_dir, "GroundTruth_edges_s139.csv")
-truth_csv = os.path.join(exp_dir, "GroundTruth_edges_s72.csv")
+truth_csv = os.path.join(exp_dir, "GroundTruth_edges_s139.csv")
+# truth_csv = os.path.join(exp_dir, "GroundTruth_edges_s72.csv")
 pred_csv = os.path.join(exp_dir, "DoubleLinker_edges.csv")
 
 lp_values = list(range(5, 55, 5))

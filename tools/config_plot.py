@@ -23,7 +23,10 @@ import os
 # CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Ribosome_tomo0017\Linker_edges.csv"
 
 # --- Data Source ---
-CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Single_tomo3\DoubleLinker_edges.csv"
+# CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Single_tomo3\DoubleLinker_edges.csv"
+
+# --- Data Source ---
+CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Single_tomo_FV3h24_2005010012\DoubleLinker_edges.csv"
 
 
 # --- Probability Filtering ---
@@ -35,7 +38,7 @@ P_THRESHOLD_DIST = 0       # Applied to the 1D length distribution histogram
 # Ribosome (A-site/E-site to surface): 10–15 nm
 # Nucleosome (DNA exit at surface):      0 nm
 R_OFFSET_NM = 0         # (nm) rigid-body offset per arm; set 0 to disable
-L_MIN_NM    = 1.0         # (nm) outlier floor after correction
+L_MIN_NM    = 0         # (nm) outlier floor after correction
 
 # --- Energy Model Physics Constants (For 2D Energy Landscape) ---
 LP = 50                     # (nm) Persistence length (e.g., 1.5 for mRNA, 50 for DNA)
