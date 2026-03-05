@@ -37,9 +37,9 @@ from config_plot import CSV_PATH, P_THRESHOLD_MAP, R_OFFSET_NM, L_MIN_NM
 # ============================================================
 # 1. Configuration
 # ============================================================
-# STAR file: must be in the same directory as the CSV
+# STAR file: annotated output lives in the same directory as the CSV
+# and already contains all particle coordinates (superset of input STAR)
 _EXP_DIR  = os.path.dirname(CSV_PATH)
-STAR_PATH = None          # auto-detected below
 
 # Sliding window parameters
 WINDOW_RADIUS_NM = 50.0   # half-diameter of the circular window (nm)
@@ -62,59 +62,26 @@ PIXEL_SIZE_NM = 1.513 / 10.0   # nm per pixel for FV3h24_2005010012
 
 # Colourmap limits (nm) — log scale
 LP_VMIN = 5.0
-LP_VMAX = 200.0
+LP_VMAX = 50.0
 
 # ============================================================
-# 2. Auto-detect STAR file
+# 2. Locate annotated STAR file (same dir as CSV)
 # ============================================================
-# Prefer 'subset_*.star' (input particles) over annotated output files
-_all_stars = sorted(f for f in os.listdir(_EXP_DIR) if f.endswith(".star"))
-_star_candidates = [f for f in _all_stars if f.startswith("subset")] + \
-                   [f for f in _all_stars if not f.startswith("subset")]
-if not _star_candidates:
-    raise FileNotFoundError(f"No .star file found in {_EXP_DIR}")
-# Pick the first STAR file that actually contains the coordinate column
-STAR_PATH = None
-for _fname in _star_candidates:
-    _path = os.path.join(_EXP_DIR, _fname)
-    try:
-        _tmp = starfile.read(_path)
-        _df  = _tmp if isinstance(_tmp, pd.DataFrame) else next(
-               (v for v in _tmp.values() if STAR_X_COL in v.columns), None)
-        if _df is not None and STAR_X_COL in _df.columns:
-            STAR_PATH = _path
-            break
-    except Exception:
-        continue
-if STAR_PATH is None:
-    raise FileNotFoundError(
-        f"No STAR file with '{STAR_X_COL}' found in {_EXP_DIR}"
-    )
+_ann_stars = [f for f in os.listdir(_EXP_DIR) if f.endswith("_annotated.star")]
+if not _ann_stars:
+    raise FileNotFoundError(f"No *_annotated.star found in {_EXP_DIR}")
+STAR_PATH = os.path.join(_EXP_DIR, sorted(_ann_stars)[0])
 print(f"[INFO] STAR: {os.path.basename(STAR_PATH)}")
 print(f"[INFO] CSV : {os.path.basename(CSV_PATH)}")
 
 # ============================================================
-# 3. Load STAR → particle XY positions (nm)
+# 3. Load annotated STAR → particle XY positions (nm)
 # ============================================================
-star_data = starfile.read(STAR_PATH)
-# starfile returns dict if multiple blocks; take the particles block
-if isinstance(star_data, dict):
-    # pick first block that has the coordinate column
-    for _k, _v in star_data.items():
-        if STAR_X_COL in _v.columns:
-            star_data = _v
-            break
-    else:
-        raise KeyError(f"{STAR_X_COL} not found in any STAR block")
-
-particles = star_data
+particles = starfile.read(STAR_PATH)   # returns flat DataFrame
 print(f"[INFO] Particles: {len(particles)}")
 
-px_x = particles[STAR_X_COL].values.astype(float)  # pixel
-px_y = particles[STAR_Y_COL].values.astype(float)  # pixel
-
-nm_x = px_x * PIXEL_SIZE_NM  # nm
-nm_y = px_y * PIXEL_SIZE_NM  # nm
+nm_x = particles[STAR_X_COL].values.astype(float) * PIXEL_SIZE_NM
+nm_y = particles[STAR_Y_COL].values.astype(float) * PIXEL_SIZE_NM
 
 # ============================================================
 # 4. Load CSV → join midpoint XY
