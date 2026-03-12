@@ -22,10 +22,27 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # STAR_PATH = Path("Nucleosome_coords_from_clustered_N_Reset_Z48_deduplicated_subtomo_coords_T1001010006_C3_man.star")
 
-STAR_PATH = Path("Nucleosome_coords_from_clustered_Reset_Z48_deduplicated_subtomo_coords_C2cc5.star")
+# STAR_PATH = Path("Nucleosome_coords_from_clustered_Reset_Z48_deduplicated_subtomo_coords_C2cc5.star")
 
-PIXEL_SIZE_A = 1.513  # Å/px
-TOMO_SIZE_PX = (4096, 4096, 3000)  # (X, Y, Z) bin1
+# =====Zhen Hou 2-3
+# STAR_PATH = Path("IDandName_HIV_Nuc_wt_grid_826002_single3.star")
+# STAR_PATH = Path("IDandName_deep_in_nucleosome_for_mapping_back_single2.star")
+# PIXEL_SIZE_A = 11.64  # Å/px
+# TOMO_SIZE_PX = np.array([4096, 4096, 3000]) / 6
+# =====Zhen Hou 1
+# STAR_PATH = Path("subtomo_coords__tomo-HIV_Nuc_Lena_grid_1072_single1.star")
+# PIXEL_SIZE_A = 1.94  # Å/px
+# TOMO_SIZE_PX = np.array([4096, 4096, 3000])
+
+# =====Zhen NC
+STAR_PATH = Path("IDandName_lamellae_014_NC.star")
+PIXEL_SIZE_A = 13.08  # Å/px
+TOMO_SIZE_PX = np.array([5760, 4096, 3000]) / 6
+
+# PIXEL_SIZE_A = 1.513  # Å/px
+# TOMO_SIZE_PX = (4096, 4096, 3000)  # (X, Y, Z) bin1
+
+
 BIN_SIZE_NM = 50   # cubic window size in nm
 STEP_NM = 10       # sliding window step in nm
 NUCLEOSOME_MASS_G = 4.018507e-19  # g per nucleosome

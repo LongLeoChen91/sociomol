@@ -53,7 +53,7 @@ THETA_COL = "theta_deg"
 L_COL     = "L_nm"
 
 LP_MIN    = 0.5       # nm - lower bound of sweep
-LP_MAX    = 20.0     # nm - upper bound of sweep
+LP_MAX    = 50.0     # nm - upper bound of sweep
 LP_STEPS  = 600       # resolution of parameter sweep
 
 # R_OFFSET_NM and L_MIN_NM are imported from config_plot.py

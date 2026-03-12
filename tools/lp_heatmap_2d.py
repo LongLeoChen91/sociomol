@@ -63,11 +63,32 @@ STAR_X_COL = "rlnLC_CoordinateX0"
 STAR_Y_COL = "rlnLC_CoordinateY0"
 
 # Pixel size from experiment config (Å/px → nm/px = Å/px / 10)
-PIXEL_SIZE_NM = 1.513 / 10.0   # nm per pixel for FV3h24_2005010012
+# PIXEL_SIZE_NM = 1.513 / 10.0   # nm per pixel for FV3h24_2005010012
+# Tomogram size in pixels (X, Y) — used to draw the full tomogram boundary
+# TOMO_SIZE_PX = (4096, 4096)    # (X, Y) bin1 pixel dimensions
+
+
+# =====Zhen Hou 1
+# PIXEL_SIZE_NM = 1.94 / 10.0  # Å/px
+# TOMO_SIZE_PX = np.array([4096, 4096, 3000])
+# TOMO_SIZE_PX = np.array([5760,4092,3000]) # not sure K3?
+# =====Zhen Hou 2-3
+# PIXEL_SIZE_NM = 11.64 / 10.0
+# TOMO_SIZE_PX = np.array([4096, 4096, 3000]) / 6
+# =====Zhen Hou NC
+PIXEL_SIZE_NM = 13.08 / 10.0  # Å/px
+TOMO_SIZE_PX = np.array([5760, 4096, 3000])/6
+
+_TOMO_X_NM = TOMO_SIZE_PX[0] * PIXEL_SIZE_NM
+_TOMO_Y_NM = TOMO_SIZE_PX[1] * PIXEL_SIZE_NM
 
 # Colourmap limits (nm) — log scale
 LP_VMIN = 5.0
 LP_VMAX = 20.0
+
+# Colourmap limits for N linkers per window cell
+N_VMIN = N_MIN
+N_VMAX = 100
 
 # ============================================================
 # 2. Locate annotated STAR file (same dir as CSV)
@@ -173,6 +194,8 @@ ax.scatter(X_v, Y_v, s=1, c="dimgray", alpha=0.3, linewidths=0, zorder=2,
            label="Linker midpoints")
 
 ax.set_aspect("equal")
+ax.set_xlim(0, _TOMO_X_NM)
+ax.set_ylim(0, _TOMO_Y_NM)
 ax.set_xlabel("X  (nm)", fontsize=11)
 ax.set_ylabel("Y  (nm)", fontsize=11)
 ax.set_title(
@@ -188,23 +211,20 @@ _lp_ticks = [t for t in [5, 6, 8, 10, 15, 20, 30, 50]
               if LP_VMIN <= t <= LP_VMAX]
 cb.set_ticks(_lp_ticks)
 cb.set_ticklabels([str(t) for t in _lp_ticks])
-ax.spines["top"].set_visible(False)
-ax.spines["right"].set_visible(False)
-
 # --- Panel 2: N linkers per window cell ---
 ax2 = axes[1]
 im2 = ax2.pcolormesh(xi_vals, yi_vals, N_map,
-                     cmap="viridis", shading="auto")
+                     cmap="viridis", shading="auto",
+                     vmin=N_VMIN, vmax=N_VMAX)
 ax2.set_aspect("equal")
+ax2.set_xlim(0, _TOMO_X_NM)
+ax2.set_ylim(0, _TOMO_Y_NM)
 ax2.set_xlabel("X  (nm)", fontsize=11)
 ax2.set_title(f"N linkers per window cell\n(white = < {N_MIN} → Lp* = NaN)",
               fontsize=10)
 cb2 = fig.colorbar(im2, ax=ax2, fraction=0.046, pad=0.02)
 cb2.set_label("N linkers", fontsize=10)
 cb2.ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%d"))
-ax2.spines["top"].set_visible(False)
-ax2.spines["right"].set_visible(False)
-
 # --- Panel 3: Cramér-Rao relative error (reliability indicator) ---
 # CR(%) = sqrt(2/N) * 100.  Lower = more reliable estimate.
 ax3 = axes[2]
@@ -212,6 +232,8 @@ im3 = ax3.pcolormesh(xi_vals, yi_vals, CR_map,
                      cmap="YlOrRd", shading="auto",
                      vmin=0, vmax=100)
 ax3.set_aspect("equal")
+ax3.set_xlim(0, _TOMO_X_NM)
+ax3.set_ylim(0, _TOMO_Y_NM)
 ax3.set_xlabel("X  (nm)", fontsize=11)
 ax3.set_title(
     r"Cramér-Rao relative error  $\sqrt{2/N}$"
@@ -221,9 +243,6 @@ ax3.set_title(
 cb3 = fig.colorbar(im3, ax=ax3, fraction=0.046, pad=0.02)
 cb3.set_label(r"Rel. error  (%)", fontsize=10)
 cb3.ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%d%%"))
-ax3.spines["top"].set_visible(False)
-ax3.spines["right"].set_visible(False)
-
 print(f"[INFO] CR range: {np.nanmin(CR_map):.1f}% – {np.nanmax(CR_map):.1f}%")
 
 plt.tight_layout()
