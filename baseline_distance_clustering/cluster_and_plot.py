@@ -26,23 +26,14 @@ from sklearn.metrics import adjusted_rand_score
 #  CONFIGS  –  add new datasets here, then set ACTIVE to the desired key
 # =============================================================================
 CONFIGS = {
-    "nucleosome_R1": dict(
-        star_file    = "R1/R1_ID_Manual_1.star",
+    "nucleosome": dict(
+        star_file    = "R3_ID_Manual_1.star",
         pixel_size_a = 8.0,                         # Å/pixel
-        eps_values   = [12, 15, 18, 21],             # nm, plotted panels
-        save_eps     = 15,                           # nm, saved to STAR
+        eps_values   = [11, 13, 15],             # nm, plotted panels
+        save_eps     = 13,                           # nm, saved to STAR (peak ARI)
         gt_col       = "class",                      # ground-truth column
         min_samples  = 1,
-        eps_sweep    = (2.0, 50.5, 0.5),             # (start, stop, step) nm
-    ),
-    "nucleosome_R2": dict(
-        star_file    = "R2/R2_ID_Manual_1.star",
-        pixel_size_a = 8.0,
-        eps_values   = [12, 15, 18, 21],
-        save_eps     = 13,
-        gt_col       = "class",
-        min_samples  = 1,
-        eps_sweep    = (2.0, 50.5, 0.5),
+        eps_sweep    = (5.0, 50.5, 0.5),             # (start, stop, step) nm
     ),
     "ribosome": dict(
         star_file    = "IDname_PolysomeManual_1.star",
@@ -51,12 +42,13 @@ CONFIGS = {
         save_eps     = 29,
         gt_col       = "class",
         min_samples  = 1,
-        eps_sweep    = (5.0, 80.0, 1.0),
+        eps_sweep    = (5.0, 50.0, 1.0),
     ),
 }
 
-# ← 只改这一行来切换数据集
-ACTIVE = "nucleosome_R2"
+# Change this line to switch between datasets
+ACTIVE = "ribosome"
+
 
 # =============================================================================
 #  Unpack active config
@@ -173,7 +165,7 @@ best_idx   = int(np.argmax(ari_arr))
 best_eps   = EPS_SWEEP[best_idx]
 best_ari   = ari_arr[best_idx]
 
-fig2, ax1 = plt.subplots(figsize=(8, 4))
+fig2, ax1 = plt.subplots(figsize=(4, 4))
 ax2 = ax1.twinx()
 
 ax1.plot(EPS_SWEEP, ari_arr,    color="steelblue", lw=2,   label="ARI")
