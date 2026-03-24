@@ -13,6 +13,12 @@ import os
 # CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\MR_arm2_0_di25_72_BaseOnEndDensity\GroundTruth_edges_s72.csv"
 # CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\MR_arm2_0_di25_72_BaseOnEndDensity\DoubleLinker_edges.csv"
 
+# --- Data Source ---Manual_1
+# CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Manual_1\DoubleLinker_edges.csv"
+
+# --- Data Source ---PolysomeManual_1
+CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\PolysomeManual_1\Linker_edges.csv"
+
 
 # --- Data Source ---
 
@@ -32,7 +38,7 @@ import os
 # CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Single_tomo\DoubleLinker_edges.csv"
 
 # --- Data Source ---
-CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\NC\DoubleLinker_edges.csv"
+# CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\NC\DoubleLinker_edges.csv"
 
 
 # --- Data Source ---
@@ -46,6 +52,9 @@ CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260
 
 # --- Data Source ---
 # CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Single_tomo_FV3h24_2009010021\DoubleLinker_edges.csv"
+
+
+
 
 # --- Probability Filtering ---
 P_THRESHOLD_MAP = 0       # Applied to the 2D energy landscape overlay
