@@ -5,7 +5,7 @@ import os
 # ============================================================
 
 # --- Data Source ---
-# CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\MR_arm2_0_di30_139_BaseOnEndDensity\GroundTruth_edges_s139.csv"
+CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\MR_arm2_0_di30_139_BaseOnEndDensity\GroundTruth_edges_s139.csv"
 # CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\MR_arm2_0_di30_139_BaseOnEndDensity\DoubleLinker_edges.csv"
 
 
@@ -17,7 +17,7 @@ import os
 # CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Manual_1\DoubleLinker_edges.csv"
 
 # --- Data Source ---PolysomeManual_1
-CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\PolysomeManual_1\Linker_edges.csv"
+# CSV_PATH = r"C:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\PolysomeManual_1\Linker_edges.csv"
 
 
 # --- Data Source ---
@@ -83,7 +83,8 @@ L_STD = 20            # (nm) Distance tolerance (standard deviation)
 THETA_STD_DEG = 90    # (deg) Angular tolerance (standard deviation)
 
 # --- Plotting Visuals : 2D Overlay Map ---
-CONTOUR_THRESHOLDS = [0.03,0.37]
+# CONTOUR_THRESHOLDS = [0.03,0.37]
+CONTOUR_THRESHOLDS = [0.03,0.1,0.2,0.37,0.5]
 
 # --- Plotting Visuals : 1D Length Distribution ---
 FIT_MODE = "single"          # "single" for normal Gaussian, "gmm" for Gaussian Mixture

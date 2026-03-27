@@ -1,0 +1,178 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import pandas as pd
+import os
+
+# Set working directory to the script's location
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+from config_plot import CSV_PATH, P_THRESHOLD_MAP, LP, L0, THETA0_DEG, W_WLC, W_L, W_TH, W_L_SQ, W_TH_SQ, L_IDEAL, L_STD, THETA_STD_DEG, CONTOUR_THRESHOLDS
+
+# ============================================================
+# 1. Configuration
+# ============================================================
+
+THETA_COL = "theta_deg"
+L_COL     = "L_nm"
+
+# Uniform contour style (all contour lines share the same color and linestyle)
+CONTOUR_COLOR     = "red"
+CONTOUR_LINESTYLE = "--"
+CONTOUR_LINEWIDTH = 2.0
+
+# Allowed-range boundary (rectangle clipping region)
+ALLOWED_L_MAX     = 50     # nm  — right boundary
+ALLOWED_THETA_MAX = 180    # deg — top boundary
+BOUNDARY_COLOR    = "red"
+BOUNDARY_LW       = 2.0
+BOUNDARY_LS       = "-"
+
+
+# ============================================================
+# 2. Data Loading
+# ============================================================
+df = pd.read_csv(CSV_PATH)
+
+if THETA_COL not in df.columns or L_COL not in df.columns or "P" not in df.columns:
+    raise KeyError(f"Missing required columns in CSV. Available: {list(df.columns)}")
+
+df_sub = df[df["P"] > P_THRESHOLD_MAP]
+
+theta_data = pd.to_numeric(df_sub[THETA_COL], errors="coerce")
+L_data     = pd.to_numeric(df_sub[L_COL],     errors="coerce")
+
+mask       = theta_data.notna() & L_data.notna()
+theta_data = theta_data[mask]
+L_data     = L_data[mask]
+
+print(f"[INFO] Loaded {len(theta_data)} points from CSV")
+
+# ============================================================
+# 3. Model Computation (Energy / Probability Map)
+# ============================================================
+max_L_data = float(L_data.max()) if len(L_data) > 0 else 60.0
+max_L_plot = max(60.0, max_L_data * 1.1)
+
+L_min, L_max, nL = 1.0, max_L_plot * 1.05, 400
+t_min, t_max, nT = 0.0, np.pi, 400
+
+L_vals          = np.linspace(L_min, L_max, nL)
+theta_vals_rad  = np.linspace(t_min, t_max, nT)
+theta_vals_deg  = np.degrees(theta_vals_rad)
+
+L_grid, theta_grid_rad = np.meshgrid(L_vals, theta_vals_rad)
+_,      theta_grid_deg = np.meshgrid(L_vals, theta_vals_deg)
+
+theta0     = np.deg2rad(THETA0_DEG)
+theta_std  = np.deg2rad(THETA_STD_DEG)
+if theta0 <= 0 or theta_std <= 0:
+    raise ValueError("theta0_deg and theta_std_deg must be > 0")
+
+E_wlc    = (2.0 * LP / L_grid) * (0.5 * theta_grid_rad) ** 2
+E_len    = L_grid / L0
+E_ang    = (0.5 * theta_grid_rad) / theta0
+E_len_sq = ((L_grid - L_IDEAL) / L_STD) ** 2
+E_ang_sq = (theta_grid_rad / theta_std) ** 2
+
+E_total = (W_WLC * E_wlc) + (W_L * E_len) + (W_TH * E_ang) + (W_L_SQ * E_len_sq) + (W_TH_SQ * E_ang_sq)
+P       = np.exp(-E_total)
+
+# ============================================================
+# 4. Plotting
+# ============================================================
+fig, ax = plt.subplots(figsize=(7.5, 6))
+
+# a) Background probability map
+cf = ax.contourf(
+    L_grid, theta_grid_deg, P,
+    levels=np.linspace(0, 1, 101),
+    cmap="YlGnBu",
+    alpha=0.8
+)
+fig.colorbar(cf, ax=ax, label="P(L, θ) (unnormalized score)", ticks=np.linspace(0, 1, 11))
+
+# b) Uniform contour lines for all thresholds
+# Mask P outside the allowed boundary so that contours (and their text labels)
+# are strictly confined to the visible allowed range.
+P_masked = np.copy(P)
+P_masked[(L_grid > ALLOWED_L_MAX) | (theta_grid_deg > ALLOWED_THETA_MAX)] = np.nan
+
+for thr in CONTOUR_THRESHOLDS:
+    cs = ax.contour(
+        L_grid, theta_grid_deg, P_masked,
+        levels=[thr],
+        colors=CONTOUR_COLOR,
+        linestyles=CONTOUR_LINESTYLE,
+        linewidths=CONTOUR_LINEWIDTH
+    )
+    labels = ax.clabel(
+        cs,
+        fmt={thr: f"P={thr}"},
+        inline=True,
+        inline_spacing=2,
+        fontsize=9,
+        manual=False,
+    )
+    # If the default automatic placement fails to label this contour level (common for large or edge-hugging curves),
+    # force a label at the midpoint of the longest path segment.
+    if len(labels) == 0:
+        paths = cs.get_paths()
+        if paths:
+            longest_path = max(paths, key=lambda p: len(p.vertices))
+            if len(longest_path.vertices) > 0:
+                mid_idx = len(longest_path.vertices) // 2
+                mid_pt = longest_path.vertices[mid_idx]
+                ax.clabel(cs, fmt={thr: f"P={thr}"}, inline=True, inline_spacing=2, fontsize=9, manual=[mid_pt])
+
+
+
+# c) Scatter: predicted data points
+# ax.scatter(
+#     L_data, theta_data,
+#     s=25,
+#     color="red",
+#     edgecolor="black",
+#     linewidth=0.5,
+#     alpha=0.9,
+#     # label="Predicted Edges",
+# )
+
+# d) Allowed-range boundary: rectangle box
+# rect_border = mpatches.FancyBboxPatch(
+#     (0, 0), ALLOWED_L_MAX, ALLOWED_THETA_MAX,
+#     boxstyle="square,pad=0",
+#     linewidth=BOUNDARY_LW, linestyle=BOUNDARY_LS,
+#     edgecolor=BOUNDARY_COLOR, facecolor="none",
+#     # label=f"Allowed range (L < {ALLOWED_L_MAX} nm, θ < {ALLOWED_THETA_MAX}°)",
+#     zorder=7
+# )
+# ax.add_patch(rect_border)
+
+
+# Aesthetics
+ax.set_xlabel("Linker length L (nm)", fontsize=13)
+ax.set_ylabel("Bending angle θ (degrees)", fontsize=13)
+# ax.set_title(
+#     "Prediction Verification vs Linker Probability Map\n"
+#     f"lp={LP:g} nm, L0={L0:g} nm, θ0={THETA0_DEG:g}° | "
+#     f"w_wlc={W_WLC:g}, w_L={W_L:g}, w_th={W_TH:g} \n"
+#     f"L_ideal={L_IDEAL:g}, L_std={L_STD:g}, th_std={THETA_STD_DEG:g}° | "
+#     f"w_L_sq={W_L_SQ:g}, w_th_sq={W_TH_SQ:g}",
+#     fontsize=10,
+#     pad=12
+# )
+
+ax.set_xlim(0, 40 * 1.08)
+ax.set_ylim(0, 120)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+# ax.legend(loc="upper right")
+
+fig.tight_layout()
+
+out_png = "theta_vs_L_energy_landscape_uniform.png"
+fig.savefig(out_png, dpi=300)
+plt.show()
+
+print(f"✅ Energy Landscape Figure saved as '{out_png}'")
