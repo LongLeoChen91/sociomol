@@ -14,7 +14,7 @@ OUTPUT_STAR = "Avg_Linkers_annotated.star"
 EDGES_CSV   = "Linker_edges.csv"
 
 PIXEL_SIZE_A  = 1.96                # Å/pixel
-DIST_CUTOFF_NM = 40                 # [nm] Arm–arm distance cutoff
+DIST_CUTOFF_NM = 30                 # [nm] Arm–arm distance cutoff
 P_THRESHOLD = 0.05                   # Probability threshold for assignment
 
 # ==========================================
@@ -25,7 +25,7 @@ P_THRESHOLD = 0.05                   # Probability threshold for assignment
 # -- A. Physics Base Parameters --
 LP_NM = 1.5                         # [nm] Persistence length (bending stiffness)
 L0_NM = 20                          # [nm] Reference length (ideal connection distance)
-THETA0_DEG = 45.0                   # [deg] Reference angle for angle penalty
+THETA0_DEG = 45                   # [deg] Reference angle for angle penalty
 
 # -- B. Formula Component Weights --
 W_WLC = 0                         # Weight for WLC bending energy

@@ -14,7 +14,7 @@ OUTPUT_STAR = "H1_DoubleLinker_annotated.star"
 EDGES_CSV   = "DoubleLinker_edges.csv"
 
 PIXEL_SIZE_A  = 8.0                 # Å/pixel
-DIST_CUTOFF_NM = 20                 # [nm] Arm–arm distance cutoff
+DIST_CUTOFF_NM = 30                 # [nm] Arm–arm distance cutoff
 P_THRESHOLD = 0.001                  # Probability threshold for assignment
 
 # ==========================================
@@ -24,8 +24,8 @@ P_THRESHOLD = 0.001                  # Probability threshold for assignment
 
 # -- A. Physics Base Parameters --
 LP_NM = 10                         # [nm] Persistence length (bending stiffness)
-L0_NM = 15                        # [nm] Reference length (ideal connection distance)
-THETA0_DEG = 45                   # [deg] Reference angle for angle penalty
+L0_NM = 20                        # [nm] Reference length (ideal connection distance)
+THETA0_DEG = 90.0                   # [deg] Reference angle for angle penalty
 
 # -- B. Formula Component Weights --
 W_WLC = 0                         # Weight for WLC bending energy

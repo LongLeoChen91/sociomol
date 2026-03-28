@@ -36,7 +36,7 @@ _REPO_ROOT  = os.path.dirname(_SCRIPT_DIR)
 sys.path.insert(0, _REPO_ROOT)
 os.chdir(_SCRIPT_DIR)
 
-from config_plot import CSV_PATH, P_THRESHOLD_MAP, R_OFFSET_NM, L_MIN_NM
+from tools.config_plot import CSV_PATH, P_THRESHOLD_MAP, R_OFFSET_NM, L_MIN_NM
 
 # ============================================================
 # 1. Configuration

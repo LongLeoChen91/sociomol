@@ -4,33 +4,29 @@ import re
 import subprocess
 import matplotlib.pyplot as plt
 
+from sweep_config import get_sweep_paths
+
 # Paths
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-exp_dir = os.path.join(base_dir, "experiments", "MR_arm2_0_di30_139_BaseOnEndDensity")
-# exp_dir = os.path.join(base_dir, "experiments", "MR_arm2_0_di25_72_BaseOnEndDensity")
-pred_script = os.path.join(exp_dir, "LC2_V2_run_prediction.py")
-eval_script = os.path.join(base_dir, "tools", "evaluate_predictions.py")
+exp_dir, pred_script, eval_script, truth_csv, pred_csv = get_sweep_paths(base_dir)
 
-truth_csv = os.path.join(exp_dir, "GroundTruth_edges_s139.csv")
-pred_csv = os.path.join(exp_dir, "DoubleLinker_edges.csv")
-
-theta_values = list(range(10, 95, 5))
+lp_values = list(range(5, 55, 5))
 precisions = []
 recalls = []
 f1_scores = []
 
-print(f"Sweeping THETA0_DEG over: {theta_values}")
+print(f"Sweeping LP_NM over: {lp_values}")
 
-for theta in theta_values:
-    print(f"\n--- Testing THETA0_DEG = {theta}.0 ---")
+for lp in lp_values:
+    print(f"\n--- Testing LP_NM = {lp} ---")
     
     # 1. Modify the prediction script
     with open(pred_script, "r", encoding="utf-8") as f:
         content = f.read()
     
-    # Replace THETA0_DEG value
-    # Regex looks for THETA0_DEG = <number>
-    new_content = re.sub(r'THETA0_DEG\s*=\s*[\d.]+', f'THETA0_DEG = {float(theta)}', content)
+    # Replace LP_NM value
+    # Regex looks for LP_NM = <number>
+    new_content = re.sub(r'LP_NM\s*=\s*[\d.]+', f'LP_NM = {lp}', content)
     
     with open(pred_script, "w", encoding="utf-8") as f:
         f.write(new_content)
@@ -77,26 +73,26 @@ for theta in theta_values:
     recalls.append(recall)
     f1_scores.append(f1)
 
-# Restore the original config to 90.0
+# Restore the original config to 50
 with open(pred_script, "r", encoding="utf-8") as f:
     content = f.read()
-new_content = re.sub(r'THETA0_DEG\s*=\s*[\d.]+', f'THETA0_DEG = 90.0', content)
+new_content = re.sub(r'LP_NM\s*=\s*[\d.]+', f'LP_NM = 50', content)
 with open(pred_script, "w", encoding="utf-8") as f:
     f.write(new_content)
 
 # 5. Plotting
 plt.figure(figsize=(8, 6))
-plt.plot(theta_values, precisions, marker='o', label='Precision', color='blue')
-plt.plot(theta_values, recalls, marker='s', label='Recall', color='green')
-plt.plot(theta_values, f1_scores, marker='^', label='F1 Score', color='red')
+plt.plot(lp_values, precisions, marker='o', label='Precision', color='blue')
+plt.plot(lp_values, recalls, marker='s', label='Recall', color='green')
+plt.plot(lp_values, f1_scores, marker='^', label='F1 Score', color='red')
 
-plt.title('Performance Metrics vs THETA0_DEG')
-plt.xlabel('Reference Angle Tolerance (THETA0_DEG)')
+plt.title('Performance Metrics vs LP_NM')
+plt.xlabel('Persistence Length (LP_NM)')
 plt.ylabel('Score')
 plt.ylim(0, 1.05)
 plt.grid(True, linestyle='--', alpha=0.7)
 plt.legend()
 
-out_plot = os.path.join(exp_dir, "THETA0_sweep.png")
+out_plot = os.path.join(exp_dir, "LP_NM_sweep.png")
 plt.savefig(out_plot, dpi=300, bbox_inches='tight')
 print(f"\nSweep complete! Plot saved to {out_plot}")

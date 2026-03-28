@@ -24,7 +24,7 @@ P_THRESHOLD = 0.01                  # Probability threshold for assignment
 
 # -- A. Physics Base Parameters --
 LP_NM = 50                         # [nm] Persistence length (bending stiffness)
-L0_NM = 15.0                        # [nm] Reference length (ideal connection distance)
+L0_NM = 20                        # [nm] Reference length (ideal connection distance)
 THETA0_DEG = 45.0                   # [deg] Reference angle for angle penalty
 
 # -- B. Formula Component Weights --

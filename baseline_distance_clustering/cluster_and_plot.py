@@ -38,8 +38,8 @@ CONFIGS = {
     "ribosome": dict(
         star_file    = "IDname_PolysomeManual_1.star",
         pixel_size_a = 1.96,
-        eps_values   = [25, 29, 33],
-        save_eps     = 29,
+        eps_values   = [26, 28, 30],
+        save_eps     = 28,
         gt_col       = "class",
         min_samples  = 1,
         eps_sweep    = (5.0, 50.0, 1.0),
@@ -142,6 +142,11 @@ for eps, labels, n_clust, ari in results:
     if abs(eps - SAVE_EPS) < 1e-6:
         df_out = df.copy()
         df_out["rlnClusterLabel"] = labels.astype(int)
+        
+        # Calculate cluster sizes and map them to a new column
+        cluster_sizes = pd.Series(labels.astype(int)).value_counts().to_dict()
+        df_out["rlnClusterSize"] = df_out["rlnClusterLabel"].map(cluster_sizes).astype(int)
+        
         starfile.write({"particles": df_out}, OUTPUT_STAR_CLUST, overwrite=True)
         print(f"[OK] Saved clustered STAR (eps={eps}nm, n_clusters={n_clust}, ARI={ari:.2f}): {OUTPUT_STAR_CLUST}")
         saved = True

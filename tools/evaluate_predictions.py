@@ -18,9 +18,14 @@ def extract_edges(csv_path, strict=True):
     """
     try:
         df = pd.read_csv(csv_path)
+        if df.empty:
+            return set()
     except FileNotFoundError:
         print(f"Error: File not found ({csv_path})")
         sys.exit(1)
+    except pd.errors.EmptyDataError:
+        return set()
+
         
     edges = set()
     for _, row in df.iterrows():
