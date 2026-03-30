@@ -27,8 +27,7 @@ def run_prediction_pipeline(
     theta_std_deg: float = 45.0,
     port_pairing: str = "any",
     theta_mode: str = "alpha_sum",
-    require_toward_line: bool = True,
-    toward_cos_threshold: float = 0.0,
+    max_half_bending_deg: float = 90.0,
 ):
     """
     Runs the full DSU Linker assignment pipeline covering:
@@ -103,8 +102,7 @@ def run_prediction_pipeline(
         l_std_nm=l_std_nm,
         theta_std_deg=theta_std_deg,
         theta_mode=theta_mode,
-        require_toward_line=require_toward_line,
-        toward_cos_threshold=toward_cos_threshold,
+        max_half_bending_deg=max_half_bending_deg,
         port_pairing=port_pairing
     )
     assignments, adj = assigner.run()

@@ -10,23 +10,23 @@ from sweep_config import get_sweep_paths
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exp_dir, pred_script, eval_script, truth_csv, pred_csv = get_sweep_paths(base_dir)
 
-theta_values = list(range(10, 95, 5))
+# Sweeping from 30 degrees to 180 degrees
+deg_values = list(range(10, 185, 10))
 precisions = []
 recalls = []
 f1_scores = []
 
-print(f"Sweeping THETA0_DEG over: {theta_values}")
+print(f"Sweeping MAX_HALF_BENDING_DEG over: {deg_values}")
 
-for theta in theta_values:
-    print(f"\n--- Testing THETA0_DEG = {theta}.0 ---")
+for deg in deg_values:
+    print(f"\n--- Testing MAX_HALF_BENDING_DEG = {deg}.0 ---")
     
     # 1. Modify the prediction script
     with open(pred_script, "r", encoding="utf-8") as f:
         content = f.read()
     
-    # Replace THETA0_DEG value
-    # Regex looks for THETA0_DEG = <number>
-    new_content = re.sub(r'THETA0_DEG\s*=\s*[\d.]+', f'THETA0_DEG = {float(theta)}', content)
+    # Replace MAX_HALF_BENDING_DEG value
+    new_content = re.sub(r'MAX_HALF_BENDING_DEG\s*=\s*[\d.]+', f'MAX_HALF_BENDING_DEG = {float(deg)}', content)
     
     with open(pred_script, "w", encoding="utf-8") as f:
         f.write(new_content)
@@ -46,10 +46,6 @@ for theta in theta_values:
     output = result.stdout
     
     # 4. Parse metrics
-    # Format typically:
-    # Precision : 0.9231
-    # Recall    : 0.9057
-    # F1 Score  : 0.9143
     precision = None
     recall = None
     f1 = None
@@ -64,9 +60,8 @@ for theta in theta_values:
             f1 = float(line.split(":")[1].strip())
             
     if precision is None or recall is None or f1 is None:
-        print("Failed to parse metrics!")
-        print(output)
-        sys.exit(1)
+        print("Failed to parse metrics! Empty prediction.")
+        precision, recall, f1 = 0.0, 0.0, 0.0
         
     print(f"Precision: {precision:.4f} | Recall: {recall:.4f} | F1: {f1:.4f}")
     precisions.append(precision)
@@ -76,23 +71,23 @@ for theta in theta_values:
 # Restore the original config to 90.0
 with open(pred_script, "r", encoding="utf-8") as f:
     content = f.read()
-new_content = re.sub(r'THETA0_DEG\s*=\s*[\d.]+', f'THETA0_DEG = 45.0', content)
+new_content = re.sub(r'MAX_HALF_BENDING_DEG\s*=\s*[\d.]+', f'MAX_HALF_BENDING_DEG = 90.0', content)
 with open(pred_script, "w", encoding="utf-8") as f:
     f.write(new_content)
 
 # 5. Plotting
 plt.figure(figsize=(8, 6))
-plt.plot(theta_values, precisions, marker='o', label='Precision', color='blue')
-plt.plot(theta_values, recalls, marker='s', label='Recall', color='green')
-plt.plot(theta_values, f1_scores, marker='^', label='F1 Score', color='red')
+plt.plot(deg_values, precisions, marker='o', label='Precision', color='blue')
+plt.plot(deg_values, recalls, marker='s', label='Recall', color='green')
+plt.plot(deg_values, f1_scores, marker='^', label='F1 Score', color='red')
 
-plt.title('Performance Metrics vs THETA0_DEG')
-plt.xlabel('Reference Angle Tolerance (THETA0_DEG)')
+plt.title('Performance Metrics vs MAX_HALF_BENDING_DEG')
+plt.xlabel('Maximum Allowed Half-Bending Angle (deg)')
 plt.ylabel('Score')
 plt.ylim(0, 1.05)
 plt.grid(True, linestyle='--', alpha=0.7)
 plt.legend()
 
-out_plot = os.path.join(exp_dir, "THETA0_sweep.png")
+out_plot = os.path.join(exp_dir, "MAX_HALF_BENDING_DEG_sweep.png")
 plt.savefig(out_plot, dpi=300, bbox_inches='tight')
 print(f"\nSweep complete! Plot saved to {out_plot}")

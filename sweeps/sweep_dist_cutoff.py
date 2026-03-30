@@ -10,7 +10,7 @@ from sweep_config import get_sweep_paths
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exp_dir, pred_script, eval_script, truth_csv, pred_csv = get_sweep_paths(base_dir)
 
-dist_values = list(range(10, 45, 5))
+dist_values = list(range(10, 95, 5))
 precisions = []
 recalls = []
 f1_scores = []
@@ -76,7 +76,7 @@ for dist in dist_values:
 # Restore the original config to 20
 with open(pred_script, "r", encoding="utf-8") as f:
     content = f.read()
-new_content = re.sub(r'DIST_CUTOFF_NM\s*=\s*[\d.]+', f'DIST_CUTOFF_NM = 20', content)
+new_content = re.sub(r'DIST_CUTOFF_NM\s*=\s*[\d.]+', f'DIST_CUTOFF_NM = 30', content)
 with open(pred_script, "w", encoding="utf-8") as f:
     f.write(new_content)
 

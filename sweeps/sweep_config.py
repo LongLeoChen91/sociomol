@@ -24,7 +24,7 @@ CONFIGS = {
 }
 
 # Change this line to switch between datasets for all sweep scripts
-ACTIVE = "s72"
+ACTIVE = "PolysomeManual_1"
 
 def get_sweep_paths(base_dir):
     """

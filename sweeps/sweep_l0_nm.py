@@ -10,7 +10,7 @@ from sweep_config import get_sweep_paths
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exp_dir, pred_script, eval_script, truth_csv, pred_csv = get_sweep_paths(base_dir)
 
-l0_values = list(range(5, 55, 5))
+l0_values = list(range(5, 155, 5))
 precisions = []
 recalls = []
 f1_scores = []

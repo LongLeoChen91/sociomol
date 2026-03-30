@@ -77,8 +77,7 @@ def arc_length_from_endpoints_and_angle(D: float, theta: float) -> Optional[floa
 
 def theta_alpha_sum(center_i: np.ndarray, ai: np.ndarray, ti: np.ndarray,
                     center_j: np.ndarray, aj: np.ndarray, tj: np.ndarray,
-                    toward_cos_threshold: float = 0.0,
-                    require_toward_line: bool = True) -> Tuple[float, bool]:
+                    max_half_bending_deg: float = 90.0) -> Tuple[float, bool]:
     """
     Bending angle using arm-line (no centers).
 
@@ -87,8 +86,8 @@ def theta_alpha_sum(center_i: np.ndarray, ai: np.ndarray, ti: np.ndarray,
     alpha_j = angle(tj, -a_ij)
     theta   = alpha_i + alpha_j
 
-    If require_toward_line=True, both tangents must point toward ±a_ij
-    above the given cosine threshold. If ai≈aj, fall back to angle(ti,tj).
+    Both tangents must point toward ±a_ij within the max allowed half-bending cone. 
+    If ai≈aj, fall back to angle(ti,tj).
     """
     aij = unit(aj - ai)
     if np.linalg.norm(aij) == 0:
@@ -98,8 +97,9 @@ def theta_alpha_sum(center_i: np.ndarray, ai: np.ndarray, ti: np.ndarray,
     dot_i = float(np.dot(ti, aij))    # ti toward +a_ij
     dot_j = float(np.dot(tj, -aij))   # tj toward -a_ij
 
-    # Orientation constraint: require ti pointing toward j and tj pointing toward i
-    if require_toward_line and (dot_i < toward_cos_threshold or dot_j < toward_cos_threshold):
+    # Orientation constraint: require arms pointing toward the bridge within a cone
+    toward_cos_threshold = math.cos(math.radians(max_half_bending_deg))
+    if dot_i < toward_cos_threshold or dot_j < toward_cos_threshold:
         return float("nan"), False
 
     alpha_i = angle_from_dot(dot_i)

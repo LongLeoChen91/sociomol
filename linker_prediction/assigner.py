@@ -30,8 +30,7 @@ class LinkerAssigner:
                  l_std_nm: float = 10.0,
                  theta_std_deg: float = 45.0,
                  theta_mode: str = "alpha_sum",            # mode for angle calculation
-                 require_toward_line: bool = True,         # require tangents pointing toward the arm-line
-                 toward_cos_threshold: float = 0.0,       # cosine threshold for orientation constraint
+                 max_half_bending_deg: float = 90.0,      # max allowed half-bending angle
                  port_pairing: str = "any"):              # "any" or "complement"
         """
         require_toward_line : bool, default True
@@ -41,12 +40,12 @@ class LinkerAssigner:
                 dot(t_j, -a_ij) >= toward_cos_threshold.
             Set False to skip this feasibility check.
 
-        toward_cos_threshold : float, default 0.0
-            Cosine threshold for the orientation constraint relative to the
-            arm-line. Typical values:
-                0.0  ~ angle < 90° (lenient)
-                0.2  ~ angle < ~78° (moderate)
-                0.5  ~ angle < 60° (strict)
+        max_half_bending_deg : float, default 90.0
+            Maximum allowed half-bending angle relative to the arm-line. 
+            Typical values:
+                90.0 ~ arms must point generally forward
+                60.0 ~ strict forward cone
+                180.0 ~ lenient, no orientation checking
                 
         port_pairing : str, default "any"
             If "any", allows any port combinations (0->0, 1->1, 0->1, 1->0).
@@ -73,8 +72,7 @@ class LinkerAssigner:
 
         # New configuration options
         self.theta_mode = theta_mode
-        self.require_toward_line = require_toward_line
-        self.toward_cos_threshold = toward_cos_threshold
+        self.max_half_bending_deg = max_half_bending_deg
         self.port_pairing = port_pairing
 
         self.arm_used = np.zeros((self.N, 2), dtype=bool)
@@ -148,9 +146,8 @@ class LinkerAssigner:
         feasible = np.ones((E, 2, 2), dtype=bool)
         
         if getattr(self, "theta_mode", "alpha_sum") == "alpha_sum":
-            if getattr(self, "require_toward_line", True):
-                thresh = getattr(self, "toward_cos_threshold", 0.0)
-                feasible = (dot_i >= thresh) & (dot_j >= thresh)
+            thresh = math.cos(math.radians(getattr(self, "max_half_bending_deg", 90.0)))
+            feasible = (dot_i >= thresh) & (dot_j >= thresh)
             
             alpha_i = np.arccos(np.clip(dot_i, -1.0, 1.0))
             alpha_j = np.arccos(np.clip(dot_j, -1.0, 1.0))

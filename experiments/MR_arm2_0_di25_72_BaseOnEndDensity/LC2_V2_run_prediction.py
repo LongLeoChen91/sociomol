@@ -15,7 +15,7 @@ EDGES_CSV   = "DoubleLinker_edges.csv"
 
 PIXEL_SIZE_A  = 8.0                 # Å/pixel
 DIST_CUTOFF_NM = 30                 # [nm] Arm–arm distance cutoff
-P_THRESHOLD = 0.001                  # Probability threshold for assignment
+P_THRESHOLD = 0                  # 0.001; Probability threshold for assignment
 
 # ==========================================
 # 2. Five-term Energy Model Configuration
@@ -25,7 +25,7 @@ P_THRESHOLD = 0.001                  # Probability threshold for assignment
 # -- A. Physics Base Parameters --
 LP_NM = 10                         # [nm] Persistence length (bending stiffness)
 L0_NM = 20                        # [nm] Reference length (ideal connection distance)
-THETA0_DEG = 90.0                   # [deg] Reference angle for angle penalty
+THETA0_DEG = 45.0                   # [deg] Reference angle for angle penalty
 
 # -- B. Formula Component Weights --
 W_WLC = 0                         # Weight for WLC bending energy
@@ -47,8 +47,7 @@ PORT_PAIRING = "any"                # "any" (all pairs) or "complement" (forbid 
 # "tangent_tangent": (legacy) Naive 3D angle between the two arm direction vectors (ignores translation offsets).
 THETA_MODE = "alpha_sum"            
 
-REQUIRE_TOWARD_LINE = True          # Require arms pointing toward connection line
-TOWARD_COS_THRESHOLD = 0.0          # Angle with line threshold (0.0 for <90°)
+MAX_HALF_BENDING_DEG = 90.0          # Angle with line threshold (0.0 for <90°)
 
 if __name__ == "__main__":
     run_prediction_pipeline(
@@ -70,7 +69,5 @@ if __name__ == "__main__":
         theta_std_deg=THETA_STD_DEG,
         theta0_deg=THETA0_DEG,
         port_pairing=PORT_PAIRING,
-        theta_mode=THETA_MODE,
-        require_toward_line=REQUIRE_TOWARD_LINE,
-        toward_cos_threshold=TOWARD_COS_THRESHOLD
+        theta_mode=THETA_MODE,        max_half_bending_deg=MAX_HALF_BENDING_DEG
     )
