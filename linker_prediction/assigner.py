@@ -103,7 +103,21 @@ class LinkerAssigner:
             if i != j:
                 # Ensure ordered tuples to match legacy (i < j)
                 cands.add(tuple(sorted((i, j))))
-                
+
+        # Post-filter: when port_pairing is "complement", ensure at least one
+        # allowed arm combination (0↔1 or 1↔0) has distance < cutoff.
+        # Without this, pairs where only a forbidden combo (0↔0 or 1↔1) is
+        # close would leak into the candidate set, inflating false positives.
+        if self.port_pairing == "complement":
+            cutoff_sq = self.dist_cutoff ** 2
+            filtered = []
+            for (i, j) in sorted(cands):
+                d01_sq = np.sum((self.particles[i].a1 - self.particles[j].a2) ** 2)
+                d10_sq = np.sum((self.particles[i].a2 - self.particles[j].a1) ** 2)
+                if d01_sq < cutoff_sq or d10_sq < cutoff_sq:
+                    filtered.append((i, j))
+            return filtered
+
         return sorted(list(cands))
 
     def _compute_all_probs_batch(self, candidates: List[Tuple[int,int]]) -> Dict[Tuple[int,int], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
