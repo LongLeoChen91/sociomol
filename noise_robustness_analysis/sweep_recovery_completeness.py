@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import starfile
 import matplotlib.pyplot as plt
+import argparse
 
 # Link project modules
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -12,41 +13,8 @@ sys.path.insert(0, _REPO_ROOT)
 os.chdir(_SCRIPT_DIR)
 
 from linker_prediction.pipeline import run_prediction_pipeline
+from noise_robustness_analysis.cases_config import get_case
 
-# ==========================================
-# 1. Configs & Paths
-# ==========================================
-SOURCE_STAR = os.path.join(_REPO_ROOT, "experiments", "PolysomeManual_1_Noise", "Avg_Linkers.star")
-GROUND_TRUTH_CSV = os.path.join(_REPO_ROOT, "experiments", "PolysomeManual_1", "GroundTruth_edges_PoM1.csv")
-
-OUT_DIR = os.path.join(_SCRIPT_DIR, "recovery_outputs")
-os.makedirs(OUT_DIR, exist_ok=True)
-
-# 物理模型参数 (使用最新的 25nm Cutoff 以匹配实验)
-PIXEL_SIZE_A  = 1.96
-DIST_CUTOFF_NM = 25
-P_THRESHOLD = 0.0
-LP_NM = 1.5
-L0_NM = 20.0
-THETA0_DEG = 45.0
-W_WLC = 0.0
-W_L = 1.0
-W_TH = 1.0
-W_L_SQ = 0.0
-W_TH_SQ = 0.0
-L_IDEAL_NM = 0.0
-L_STD_NM = 20.0
-THETA_STD_DEG = 90.0
-PORT_PAIRING = "complement"
-THETA_MODE = "alpha_sum"
-MAX_HALF_BENDING_DEG = 90.0
-
-# 移除比例：从 0% 到 50%，步长 5%
-REMOVAL_RATIOS = np.arange(0.0, 0.51, 0.05)
-
-# ==========================================
-# 2. 评估体系函数 (基于 Particle ID 的 Keys)
-# ==========================================
 def extract_edge_key(row):
     id1, id2 = int(row['i_id']), int(row['j_id'])
     arm1, arm2 = int(float(row['arm_i'])), int(float(row['arm_j']))
@@ -69,27 +37,32 @@ def evaluate_predictions(pred_csv, gt_csv):
     fp = len(pred_keys - gt_keys)
     fn = len(gt_keys - pred_keys)
 
-    # 这里的 Recall 是 Global Recall，即相对于“完整数据集”的漏失程度
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
 
     return tp, fp, fn, precision, recall, f1
 
-# ==========================================
-# 3. 核心循环：模拟不完全恢复 (Simulate Incomplete Recovery)
-# ==========================================
 def main():
-    print(f"[INFO] Source STAR: {SOURCE_STAR}")
-    df_all = starfile.read(SOURCE_STAR)
-    
-    # 彻底去掉所有 noise class 99，只留 signal
+    parser = argparse.ArgumentParser(description="Simulate Incomplete Recovery across different cases.")
+    parser.add_argument("--case", type=str, default="PolysomeManual_1", help="Case name from cases_config.py")
+    parser.add_argument("--removal-ratios", type=float, nargs="+", default=list(np.arange(0.0, 0.51, 0.05)), help="List of removal ratios (0.0 to 0.5)")
+    args = parser.parse_args()
+
+    config = get_case(args.case)
+    print(f"\n[INFO] Starting Recovery Sweep for Case: {config['label']}")
+    print(f"[INFO] Source STAR: {config['source_star']}")
+
+    OUT_DIR = os.path.join(_SCRIPT_DIR, "recovery_outputs", args.case)
+    os.makedirs(OUT_DIR, exist_ok=True)
+
+    df_all = starfile.read(config['source_star'])
     df_signal = df_all[df_all['class'] != 99].copy()
     print(f"[INFO] Clean Signal Pool: {len(df_signal)} particles")
 
     results = []
 
-    for ratio in REMOVAL_RATIOS:
+    for ratio in args.removal_ratios:
         print(f"\n==============================================")
         print(f"--- Simulating Incomplete Recovery: [{ratio*100:3.0f}% Particles Removed] ---")
         
@@ -108,27 +81,27 @@ def main():
             input_star=temp_star,
             output_star=temp_annotated,
             edges_csv=temp_edges,
-            pixel_size_a=PIXEL_SIZE_A,
-            dist_cutoff_nm=DIST_CUTOFF_NM,
-            lp_nm=LP_NM,
-            l0_nm=L0_NM,
-            p_threshold=P_THRESHOLD,
-            w_wlc=W_WLC,
-            w_L=W_L,
-            w_th=W_TH,
-            w_L_sq=W_L_SQ,
-            w_th_sq=W_TH_SQ,
-            l_ideal_nm=L_IDEAL_NM,
-            l_std_nm=L_STD_NM,
-            theta_std_deg=THETA_STD_DEG,
-            theta0_deg=THETA0_DEG,
-            port_pairing=PORT_PAIRING,
-            theta_mode=THETA_MODE,
-            max_half_bending_deg=MAX_HALF_BENDING_DEG
+            pixel_size_a=config['pixel_size_a'],
+            dist_cutoff_nm=config['dist_cutoff_nm'],
+            lp_nm=config['lp_nm'],
+            l0_nm=config['l0_nm'],
+            p_threshold=config['p_threshold'],
+            w_wlc=config['w_wlc'],
+            w_L=config['w_L'],
+            w_th=config['w_th'],
+            w_L_sq=config['w_L_sq'],
+            w_th_sq=config['w_th_sq'],
+            l_ideal_nm=config['l_ideal_nm'],
+            l_std_nm=config['l_std_nm'],
+            theta_std_deg=config['theta_std_deg'],
+            theta0_deg=config['theta0_deg'],
+            port_pairing=config['port_pairing'],
+            theta_mode=config['theta_mode'],
+            max_half_bending_deg=config['max_half_bending_deg']
         )
         
-        # 3. 评估指标 (Global Metrics)
-        tp, fp, fn, precision, recall, f1 = evaluate_predictions(temp_edges, GROUND_TRUTH_CSV)
+        # 3. 评估指标
+        tp, fp, fn, precision, recall, f1 = evaluate_predictions(temp_edges, config['gt_csv'])
         print(f" -> Result: Particles={len(df_sampled)}, TP={tp}, FN={fn}, P={precision:.3f}, R={recall:.3f}")
 
         results.append({
@@ -151,7 +124,7 @@ def main():
     # 4. 保存报表与绘图
     # ==========================================
     df_results = pd.DataFrame(results)
-    csv_out = os.path.join(_SCRIPT_DIR, "recovery_sweep_metrics.csv")
+    csv_out = os.path.join(OUT_DIR, "recovery_sweep_metrics.csv")
     df_results.to_csv(csv_out, index=False)
     print(f"\n[OK] Metrics saved to {csv_out}")
 
@@ -160,25 +133,22 @@ def main():
     ax.plot(df_results["Removal_Ratio"] * 100, df_results["Precision"], marker='s', color='crimson', linewidth=2, label="Precision")
     ax.plot(df_results["Removal_Ratio"] * 100, df_results["F1_Score"], marker='D', color='black', linestyle='--', linewidth=2, label="F1 Score")
     
-    ax.set_title("Robustness to Incomplete Particle Recovery (In-silico Deletion)", fontsize=13)
+    ax.set_title(f"Incomplete Recovery Robustness ({args.case})", fontsize=13)
     ax.set_xlabel("Percentage of Particles Removed (%)", fontsize=12)
     ax.set_ylabel("Global Metric Score", fontsize=12)
     ax.set_ylim(0, 1.05)
     ax.set_xlim(-2, 55)
     ax.grid(True, linestyle=':', alpha=0.7)
     
-    # 标注理论存活曲线作为参考：Theoretical Edge Recovery ~ (1-p)^2
     p = df_results["Removal_Ratio"]
     theoretical_recall = (1.0 - p)**2
     ax.plot(df_results["Removal_Ratio"] * 100, theoretical_recall, color='gray', linestyle=':', alpha=0.5, label="Theoretical Limit $(1-p)^2$")
 
     ax.legend(fontsize=10)
-    
     plt.tight_layout()
-    plot_out = os.path.join(_SCRIPT_DIR, "recovery_sweep_curves.png")
+    plot_out = os.path.join(OUT_DIR, "recovery_sweep_curves.png")
     fig.savefig(plot_out, dpi=300)
     print(f"[OK] Plot saved to {plot_out}")
-    plt.show()
 
 if __name__ == "__main__":
     main()

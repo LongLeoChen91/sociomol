@@ -42,12 +42,12 @@ CONFIGS = {
         save_eps     = 28,
         gt_col       = "class",
         min_samples  = 1,
-        eps_sweep    = (5.0, 50.0, 1.0),
+        eps_sweep    = (5.0, 50.0, 0.5),
     ),
 }
 
 # Change this line to switch between datasets
-ACTIVE = "ribosome"
+ACTIVE = "nucleosome"
 
 
 # =============================================================================

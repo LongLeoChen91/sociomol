@@ -16,15 +16,24 @@ CONFIGS = {
         exp_name   = "Manual_1",
         truth_file = "GroundTruth_edges_M1.csv",
     ),
+    "manual1_Noise30": dict(
+        exp_name   = "Manual_1_Noise30",
+        truth_file = "GroundTruth_edges_M1.csv",
+    ),  
     "PolysomeManual_1": dict(
         exp_name   = "PolysomeManual_1",
         truth_file = "GroundTruth_edges_PoM1.csv",
         pred_file  = "Linker_edges.csv",  # Polysome uses different output name
     ),
+    "PolysomeManual_1_Noise20": dict(
+        exp_name   = "PolysomeManual_1_Noise20",
+        truth_file = "GroundTruth_edges_PoM1.csv",
+        pred_file  = "Linker_edges.csv",  # Polysome uses different output name
+    ),  
 }
 
 # Change this line to switch between datasets for all sweep scripts
-ACTIVE = "PolysomeManual_1"
+ACTIVE = "manual1"
 
 def get_sweep_paths(base_dir):
     """

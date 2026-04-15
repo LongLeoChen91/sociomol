@@ -1,0 +1,15 @@
+﻿
+[INFO] Plotting Signal vs Noise for: Nucleosome (Manual 1)
+Prediction: c:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Manual_1_Noise\DoubleLinker_edges.csv
+Ground Truth: c:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\experiments\Manual_1\GroundTruth_edges_M1.csv
+--------------------------------------------------
+TP=49, FP=273, FN=8
+--------------------------------------------------
+
+########################################
+DEBUG: Using Case Config -> Manual_1
+DEBUG: THETA0_DEG used for Plot = 20.0
+DEBUG: L0 used for Plot = 20.0
+########################################
+
+[OK] Plot saved to c:\Users\LongChen\Documents\ResearchRelated\Dev\Agent\NucC2Align260218_simplify\noise_robustness_analysis\outputs\Manual_1\signal_vs_noise_landscape.png

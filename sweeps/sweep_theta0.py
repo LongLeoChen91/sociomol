@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import subprocess
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from sweep_config import get_sweep_paths
@@ -79,6 +80,19 @@ with open(pred_script, "r", encoding="utf-8") as f:
 new_content = re.sub(r'THETA0_DEG\s*=\s*[\d.]+', f'THETA0_DEG = 45.0', content)
 with open(pred_script, "w", encoding="utf-8") as f:
     f.write(new_content)
+
+# --- Save data to CSV ---
+print("\nSaving sweep metrics to CSV...")
+df_out = pd.DataFrame({
+    "THETA0_DEG": theta_values,
+    "Precision": precisions,
+    "Recall": recalls,
+    "F1_Score": f1_scores
+})
+
+csv_out = os.path.join(exp_dir, "THETA0_sweep_F1.csv")
+df_out.to_csv(csv_out, index=False)
+print(f"[OK] CSV saved to {csv_out}\n")
 
 # 5. Plotting
 plt.figure(figsize=(8, 6))
