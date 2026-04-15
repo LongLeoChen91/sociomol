@@ -1,67 +1,132 @@
-# Linker Prediction Engine
+# SocioMol
 
-A robust, physics-based mathematical engine for predicting unobserved linear DNA linker configurations between molecular structures (like Nucleosomes and Ribosomes) natively from RELION/cryo-ET STAR files.
+**Physics-based linker assignment for cryo-ET particles.**
 
-## 🧬 Overview
-This algorithm constructs a **Worm-like Chain (WLC)** combined bending and distance penalty energy model to robustly assign continuous connective densities. It ensures:
-1. **One connection per arm**: Strict adherence to physical valency.
-2. **No cycles**: Utilization of Disjoint Set Union (DSU) prevents closed-loop hallucinations.
-3. **Probability thresholding**: Greedy optimization drops physically implausible connections based on exponential length/angle decay.
+SocioMol assigns unobserved linear connectors (e.g. DNA linkers) between
+molecular structures resolved by cryo-electron tomography.  It reads
+RELION-style STAR files, applies a configurable energy model combining
+distance and angular penalties, and outputs annotated STAR files with
+per-particle chain membership and an edge list of predicted connections.
 
-## 📂 Project Structure
-
-```text
-├── linker_prediction/     # (Core Library)
-│   ├── assigner.py        # Brain: Greedy matching and iteration algorithms
-│   ├── probability.py     # Math: Triple-Penalty energy equations (WLC, len, ang)
-│   ├── graph.py           # Constraints: DSU cyclic prevention graph logic
-│   ├── linker_geometry.py # Vector operations and bounds
-│   └── models.py          # Data definitions (Particle, LinkerAssignment)
-│
-├── experiments/           # (Runner Workspaces) Specific datasets / tests
-│   ├── Nucleosome_Ben_tomo_2173/   
-│   └── Ribosome_tomo0017/ 
-│
-└── tools/                 # (Utilities) Independent scripts
-    └── LC5C_V2B_plot_..._map_singleP_Ex.py # Generates prediction probability heatmaps
-```
-
-## 🚀 How to Run
-Navigate into any dataset tracking folder within `experiments/` and simply execute the python runner configuration script:
+## Installation
 
 ```bash
-cd experiments/Nucleosome_Ben_tomo_2173
-python LC2_V2_run_prediction.py
+# Clone the repository
+git clone https://github.com/<your-org>/sociomol.git
+cd sociomol
+
+# Install in development mode (editable)
+pip install -e .
 ```
 
-Outputs will be generated natively into the workspace:
-- `*_annotated.star`: Contains your modified input dataset augmented with prediction labels.
-- `*_edges.csv`: The pure graphical pairing edge table mapping prediction scores.
+All runtime dependencies (`numpy`, `pandas`, `scipy`, `starfile`,
+`eulerangles`, `scikit-learn`, `matplotlib`) are installed automatically.
 
-## ⚙️ Configuration (The Triple-Penalty Model)
-You do not need to edit internal source code to tune physics model strictness. The runner scripts in your `experiments/` workspaces expose these directly:
+**Requires Python ≥ 3.9.**
 
-```python
-# -- A. Physics Base Parameters --
-LP_NM = 1.5                         # [nm] Persistence length
-L0_NM = 40                          # [nm] Reference length
-THETA0_DEG = 45.0                   # [deg] Reference angle
+## Quick Start
 
-# -- B. Formula Component Weights --
-W_WLC = 1.0                         # Weight for WLC bending energy
-W_L = 1.0                           # Weight for linear distance penalty
-W_TH = 0                            # Weight for relative angle tolerance
+### 1. Run prediction
+
+```bash
+sociomol predict \
+    --input  examples/nucleosome/H1_DoubleLinker.star \
+    --output H1_DoubleLinker_annotated.star \
+    --edges  DoubleLinker_edges.csv \
+    --pixel-size 8.0 \
+    --dist-cutoff 30
 ```
-By altering these weights, you instantly shift the regime. Increase `W_TH` to penalize bad entrance angles, or lower `W_L` to allow longer straight line spans.
 
-## 📐 Geometric Analysis Modes
-The algorithm employs a configurable geometric mode to dictate exactly how arm deflection (`theta`) is calculated before it gets fed into the physics formulas above:
+This produces:
 
-```python
-# -- C. Geometry & Structural Constraints --
+| Output file | Description |
+|---|---|
+| `*_annotated.star` | Input STAR file augmented with `rlnLC_LinkPartnerArm0`, `rlnLC_LinkPartnerArm1`, and `rlnLC_ChainComponent` columns. |
+| `*_edges.csv` | Edge list with per-pair metrics: distance (D), arc length (L), bending angle (θ), assignment probability (P). |
 
-# "alpha_sum": (default) Physically realistic; evaluates sum of deflection angles from the straight connection line.
-# "tangent_tangent": (legacy) Naive 3D angle between the two arm direction vectors (ignores translation offsets).
-THETA_MODE = "alpha_sum"            
-REQUIRE_TOWARD_LINE = True          # Automatically reject backward/knotted connections
+### 2. Evaluate against ground truth
+
+```bash
+sociomol evaluate \
+    --truth examples/nucleosome/GroundTruth_edges_M1.csv \
+    --pred  DoubleLinker_edges.csv
 ```
+
+Prints arm-level Precision, Recall, and F1 Score.  Add `--relaxed` for
+particle-level matching.
+
+## Parameter Reference
+
+| Parameter | CLI flag | Default | Description |
+|---|---|---|---|
+| Pixel size | `--pixel-size` | *(required)* | Å per pixel |
+| Distance cutoff | `--dist-cutoff` | 30.0 | Arm–arm distance cutoff (nm) |
+| Probability threshold | `--p-threshold` | 0.0 | Minimum probability to accept |
+| Persistence length | `--lp` | 50.0 | Bending stiffness (nm) |
+| Reference length | `--l0` | 20.0 | Ideal connection distance (nm) |
+| Reference angle | `--theta0` | 45.0 | Angle penalty reference (deg) |
+| WLC weight | `--w-wlc` | 0.0 | Weight for WLC energy term |
+| Distance weight | `--w-l` | 1.0 | Weight for linear distance penalty |
+| Angle weight | `--w-th` | 1.0 | Weight for angle penalty |
+| Port pairing | `--port-pairing` | `any` | `any` or `complement` |
+| Angle mode | `--theta-mode` | `alpha_sum` | `alpha_sum` or `tangent_tangent` |
+| Max half-bending | `--max-half-bending` | 90.0 | Maximum half-bending angle (deg) |
+
+Run `sociomol predict --help` for the full list.
+
+## How It Works
+
+SocioMol models each particle as a rigid body with two arms.  For every
+feasible pair of arms within the distance cutoff, it computes an assignment
+probability:
+
+```
+P(L, θ) ∝ exp[ − w_L · (L / L₀)  − w_θ · (θ/2 / θ₀)  − w_WLC · E_WLC(L, θ) ]
+```
+
+where *L* is the arc length and *θ* is the total bending angle between arm
+tangents.  A greedy algorithm assigns connections in descending probability
+order, subject to:
+
+1. **One connection per arm** — strict valency constraint.
+2. **No cycles** — enforced via Disjoint Set Union (DSU).
+3. **Probability threshold** — low-confidence links are rejected.
+
+Connected components are identified via BFS and written as
+`rlnLC_ChainComponent` in the output STAR file.
+
+## Examples
+
+The `examples/` directory contains two curated datasets:
+
+| Dataset | Particle type | Pixel size (Å) | Particles |
+|---|---|---|---|
+| `examples/nucleosome/` | Nucleosome | 8.0 | 60 |
+| `examples/ribosome/` | Ribosome (polysome) | 1.96 | 78 |
+
+Each directory includes an input STAR file, a ground-truth edge CSV, and a
+`run.sh` script that demonstrates a complete predict → evaluate cycle.
+
+## Running Tests
+
+```bash
+pip install pytest
+pytest tests/
+```
+
+## Citation
+
+If you use SocioMol in your research, please cite:
+
+```bibtex
+@article{chen2026sociomol,
+    title   = {SocioMol: Physics-based linker assignment for cryo-ET particles},
+    author  = {Chen, Long},
+    year    = {2026},
+    journal = {TBD},
+}
+```
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

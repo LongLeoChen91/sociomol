@@ -39,3 +39,12 @@ venv.bak/
 **/*.star
 **/arm_star_file/
 GroundTruth_edges_*.csv
+
+# Whitelist demo data in examples/
+!examples/**/*.star
+!examples/**/*.csv
+!examples/**/*.sh
+
+# Ignore generated outputs in examples/
+examples/**/*_annotated.star
+examples/**/*_edges.csv
