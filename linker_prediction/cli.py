@@ -113,8 +113,6 @@ def _run_predict(args):
 
 
 def _run_evaluate(args):
-    # Import from the existing evaluate module in tools/
-    # For now, inline the logic to avoid depending on tools/ path
     from .cli_evaluate import evaluate_predictions
 
     evaluate_predictions(args.truth, args.pred, strict=not args.relaxed)
