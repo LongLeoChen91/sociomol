@@ -16,8 +16,7 @@ with a CSV edge list of predicted connections.
 ## Installation
 
 ```bash
-# Clone the repository (replace YOUR-USERNAME with your GitHub username or org)
-git clone https://github.com/YOUR-USERNAME/sociomol.git
+git clone https://github.com/LongLeoChen91/sociomol.git
 cd sociomol
 
 # Install (editable, includes all runtime dependencies)
@@ -185,10 +184,10 @@ If you use SocioMol in your research, please cite:
 
 ```bibtex
 @article{chen2026sociomol,
-    title   = {SocioMol: Physics-based linker assignment for cryo-ET particles},
-    author  = {Chen, Long},
-    year    = {2026},
-    journal = {under review},
+  title   = {SocioMol infers connectivity in polymer-linked assemblies from cryo-electron tomography},
+  author  = {Chen, Long and Shah, Pranav and Sandoval Valencia, Juan and Zhang, Michael and Fry, Elizabeth and Stuart, Dave},
+  year    = {2026},
+  note    = {Manuscript in preparation}
 }
 ```
 
