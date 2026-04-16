@@ -1,6 +1,6 @@
 # SocioMol
 
-**Physics-based linker assignment for cryo-ET particles.**
+**A framework for inferring connectivity in polymer-linked assemblies from cryo-electron tomography.**
 
 SocioMol predicts unobserved linear connectors (e.g. DNA linkers between
 nucleosomes, mRNA tethers between polysomes) from cryo-electron tomography
