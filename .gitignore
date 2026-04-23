@@ -31,3 +31,7 @@ venv/
 # Placed after whitelist to ensure outputs are ignored even in examples/
 *_annotated.star
 *_edges.csv
+split_by_tomo/
+
+# Always allow GroundTruth files
+!*GroundTruth*.csv
