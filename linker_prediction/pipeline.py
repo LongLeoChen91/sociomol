@@ -68,6 +68,7 @@ def run_prediction_pipeline(
     A2 = pick_cols(df, ["rlnLC_AngleRot2", "rlnLC_AngleTilt2", "rlnLC_AnglePsi2"])
 
     ids = df[IDCOL].to_numpy()
+    tomo_names = df[TOMO_COL].to_numpy() if TOMO_COL else None
     cen_px = colvec(df, C0)
     a1_px  = colvec(df, C1)
     a2_px  = colvec(df, C2)
@@ -82,36 +83,57 @@ def run_prediction_pipeline(
     t1 = euler_zyz_to_Zaxis(ang1_deg)
     t2 = euler_zyz_to_Zaxis(ang2_deg)
 
-    # Build objects
-    nucs = [Particle(center=cen[i], a1=a1[i], a2=a2[i], t1=t1[i], t2=t2[i]) for i in range(len(df))]
-
-    # Evaluation
-    assigner = LinkerAssigner(
-        nucs,
-        lp=lp_nm,
-        L0=l0_nm,
-        dist_cutoff_nm=dist_cutoff_nm,
-        p_threshold=p_threshold,
-        w_wlc=w_wlc,
-        w_L=w_L,
-        w_th=w_th,
-        w_L_sq=w_L_sq,
-        w_th_sq=w_th_sq,
-        theta0_deg=theta0_deg,
-        l_ideal_nm=l_ideal_nm,
-        l_std_nm=l_std_nm,
-        theta_std_deg=theta_std_deg,
-        theta_mode=theta_mode,
-        max_half_bending_deg=max_half_bending_deg,
-        port_pairing=port_pairing
-    )
-    assignments, adj = assigner.run()
+    tomo_names_for_grouping = df[TOMO_COL].to_numpy() if TOMO_COL else np.array(["unknown"] * len(df))
+    unique_tomos = np.unique(tomo_names_for_grouping)
+    
+    all_assignments = []
+    
+    for tomo in unique_tomos:
+        # Get global indices for this tomogram
+        global_indices = np.where(tomo_names_for_grouping == tomo)[0]
+        
+        if len(global_indices) == 0:
+            continue
+            
+        # Build objects for this tomogram
+        tomo_nucs = [Particle(center=cen[i], a1=a1[i], a2=a2[i], t1=t1[i], t2=t2[i]) for i in global_indices]
+        
+        # Evaluation for this tomogram
+        assigner = LinkerAssigner(
+            tomo_nucs,
+            lp=lp_nm,
+            L0=l0_nm,
+            dist_cutoff_nm=dist_cutoff_nm,
+            p_threshold=p_threshold,
+            w_wlc=w_wlc,
+            w_L=w_L,
+            w_th=w_th,
+            w_L_sq=w_L_sq,
+            w_th_sq=w_th_sq,
+            theta0_deg=theta0_deg,
+            l_ideal_nm=l_ideal_nm,
+            l_std_nm=l_std_nm,
+            theta_std_deg=theta_std_deg,
+            theta_mode=theta_mode,
+            max_half_bending_deg=max_half_bending_deg,
+            port_pairing=port_pairing
+        )
+        tomo_assignments, _ = assigner.run()
+        
+        # Map local indices back to global indices
+        for a in tomo_assignments:
+            a.i = global_indices[a.i]
+            a.j = global_indices[a.j]
+            all_assignments.append(a)
+            
+    assignments = all_assignments
 
     # CSV saving formatting
     idmap = {i: int(float(ids[i])) if str(ids[i]).replace('.', '', 1).isdigit() else ids[i] for i in range(len(ids))}
     rows = []
     for a in assignments:
         rows.append({
+            "tomo_name": tomo_names[a.i] if tomo_names is not None else "unknown",
             "i_idx": a.i,
             "j_idx": a.j,
             "i_id": idmap[a.i],
@@ -145,6 +167,11 @@ def run_prediction_pipeline(
     df["rlnLC_LinkPartnerArm1"] = partner_arm1
 
     # Traverse undirected graph mapping for clusters / chains utilizing BFS
+    adj = {}
+    for a in assignments:
+        adj.setdefault(a.i, []).append(a.j)
+        adj.setdefault(a.j, []).append(a.i)
+
     visited = np.zeros(len(df), dtype=bool)
     comp_id = np.full(len(df), -1, dtype=int)
     comp = 0
