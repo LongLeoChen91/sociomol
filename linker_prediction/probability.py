@@ -4,7 +4,7 @@ import numpy as np
 def bending_energy_lp(L: float, theta: float, lp: float = 50.0) -> float:
     eps = 1e-12
     L = max(L, eps)
-    return (2.0 * lp / L) * (0.5 * theta) ** 2
+    return (0.5 * lp / L) * theta ** 2
 
 def connection_probability(L: float, theta: float, L0: float = 20.0, lp: float = 1.5,
                            w_wlc: float = 1.0, w_L: float = 1.0, w_th: float = 1.0, 
@@ -16,7 +16,7 @@ def connection_probability(L: float, theta: float, L0: float = 20.0, lp: float =
     P(L, theta) ∝ exp[
       - w_wlc * (2 lp / L) * (θ/2)^2
       - w_L   * (L / L0)
-      - w_th  * ( (θ/2) / θ0 )
+      - w_th  * ( θ / θ0 )
       - w_L_sq * ((L - L_ideal) / L_std)^2
       - w_th_sq * (θ / theta_std)^2
     ]
@@ -29,7 +29,7 @@ def connection_probability(L: float, theta: float, L0: float = 20.0, lp: float =
         
     E_wlc = bending_energy_lp(L, theta, lp=lp)
     E_len = L / L0
-    E_ang = (0.5 * theta) / theta0_rad
+    E_ang = theta / theta0_rad
     
     # Sub-Gaussian / Squared terms
     E_len_sq = ((L - L_ideal) / L_std) ** 2

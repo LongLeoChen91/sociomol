@@ -25,7 +25,7 @@ class LinkerAssigner:
                  dist_cutoff_nm: float = 20.0, p_threshold: float = 0.1,
                  w_wlc: float = 1.0, w_L: float = 1.0, w_th: float = 1.0,
                  w_L_sq: float = 0.0, w_th_sq: float = 0.0,
-                 theta0_deg: float = 45.0,
+                 theta0_deg: float = 90.0,
                  l_ideal_nm: float = 20.0,
                  l_std_nm: float = 10.0,
                  theta_std_deg: float = 45.0,

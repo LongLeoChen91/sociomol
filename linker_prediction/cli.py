@@ -68,7 +68,7 @@ def _build_predict_parser(subparsers):
                    default="alpha_sum",
                    help="Angle calculation mode.")
     p.add_argument("--max-bending", type=float, default=180.0,
-                   help="Maximum total bending angle in degrees (the internal half-bending threshold is max-bending / 2).")
+                   help="Maximum allowed total bending angle (alpha_i + alpha_j) in degrees.")
 
     return p
 
@@ -133,7 +133,7 @@ def _run_predict(args):
         theta_std_deg=args.theta_std,
         port_pairing=args.port_pairing,
         theta_mode=args.theta_mode,
-        max_half_bending_deg=args.max_bending,
+        max_bending_deg=args.max_bending,
     )
 
 

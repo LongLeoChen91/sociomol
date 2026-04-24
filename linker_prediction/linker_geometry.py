@@ -86,7 +86,7 @@ def theta_alpha_sum(center_i: np.ndarray, ai: np.ndarray, ti: np.ndarray,
     alpha_j = angle(tj, -a_ij)
     theta   = alpha_i + alpha_j
 
-    Both tangents must point toward ±a_ij within the max allowed half-bending cone. 
+    Both tangents must point toward ±a_ij within the allowed bending cone (max_bending / 2 per arm). 
     If ai≈aj, fall back to angle(ti,tj).
     """
     aij = unit(aj - ai)
