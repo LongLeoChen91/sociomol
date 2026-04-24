@@ -219,7 +219,7 @@ every feasible pair of arms within the distance cutoff, it computes an
 assignment probability:
 
 ```
-P(L, θ) ∝ exp[ − w_L · (L / L₀)  −  w_θ · (θ/2 / θ₀)  −  w_WLC · E_WLC(L, θ) ]
+P(L, θ) ∝ exp[ − w_L · (L / L₀)  −  w_θ · (θ / θ₀)  −  w_WLC · E_WLC(L, θ) ]
 ```
 
 where *L* is the arc length and *θ* is the total bending angle between arm
