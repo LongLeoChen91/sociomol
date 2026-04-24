@@ -119,6 +119,8 @@ sociomol preprocess --input raw.star --output arms.star \
     --model-json my_particle_model.json --pixel-size 5.0
 ```
 
+The exported `arm_geometry.json` is directly compatible with `sociomol preprocess --model-json` — no manual conversion needed.
+
 Alternatively, you can write the JSON manually following the schema below:
 
 ```json
