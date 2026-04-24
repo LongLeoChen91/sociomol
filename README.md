@@ -104,8 +104,22 @@ sociomol preprocess --input raw.star --output arms.star \
 
 ### Custom geometry models
 
-To create a geometry model for a new particle type or subtomogram average,
-write a JSON file following this schema:
+**Recommended: Use the SocioMol Arm Builder**
+
+Determining the `anchor` and `direction_point` coordinates requires identifying
+precise 3D positions on your subtomogram average density. We provide a dedicated
+interactive web tool to streamline this process:
+
+🔗 **[sociomol_arm_builder](https://github.com/LongLeoChen91/sociomol_arm_builder)** — An interactive tool for picking arm coordinates from a density map and exporting a ready-to-use geometry JSON file.
+
+Once you have downloaded the JSON from the tool, use it directly:
+
+```bash
+sociomol preprocess --input raw.star --output arms.star \
+    --model-json my_particle_model.json --pixel-size 5.0
+```
+
+Alternatively, you can write the JSON manually following the schema below:
 
 ```json
 {
@@ -144,13 +158,6 @@ The `anchor` acts as the precise Exit Point on your reference model. The `direct
 
 A **centre feature** (suffix `0`) is automatically derived as the mean of all
 arm anchors and direction points.
-
-Use a custom model with `--model-json <path>`:
-
-```bash
-sociomol preprocess --input raw.star --output arms.star \
-    --model-json my_particle_model.json --pixel-size 5.0
-```
 
 ## Repository Layout
 
