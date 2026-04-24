@@ -77,7 +77,7 @@ def arc_length_from_endpoints_and_angle(D: float, theta: float) -> Optional[floa
 
 def theta_alpha_sum(center_i: np.ndarray, ai: np.ndarray, ti: np.ndarray,
                     center_j: np.ndarray, aj: np.ndarray, tj: np.ndarray,
-                    max_half_bending_deg: float = 90.0) -> Tuple[float, bool]:
+                    max_bending_deg: float = 180.0) -> Tuple[float, bool]:
     """
     Bending angle using arm-line (no centers).
 
@@ -98,7 +98,7 @@ def theta_alpha_sum(center_i: np.ndarray, ai: np.ndarray, ti: np.ndarray,
     dot_j = float(np.dot(tj, -aij))   # tj toward -a_ij
 
     # Orientation constraint: require arms pointing toward the bridge within a cone
-    toward_cos_threshold = math.cos(math.radians(max_half_bending_deg))
+    toward_cos_threshold = math.cos(math.radians(max_bending_deg / 2.0))
     if dot_i < toward_cos_threshold or dot_j < toward_cos_threshold:
         return float("nan"), False
 

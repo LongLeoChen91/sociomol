@@ -16,7 +16,10 @@ sociomol predict ^
     --edges  examples/chlamy_cryoet_STA_ribosome/Linker_edges.csv ^
     --pixel-size 1.96 ^
     --dist-cutoff 30 ^
-    --port-pairing complement
+    --port-pairing complement ^
+    --max-bending 180.0 ^
+    --l0 20.0 ^
+    --theta0 90.0
 
 echo.
 REM echo === Evaluating against ground truth ===

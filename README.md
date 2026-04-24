@@ -49,7 +49,11 @@ sociomol predict \
     --output H1_DoubleLinker_annotated.star \
     --edges  DoubleLinker_edges.csv \
     --pixel-size 8.0 \
-    --dist-cutoff 30
+    --dist-cutoff 30 \
+    --max-bending 180.0 \
+    --port-pairing any \
+    --l0 20.0 \
+    --theta0 90.0
 
 # 3. Evaluate against ground truth
 sociomol evaluate \

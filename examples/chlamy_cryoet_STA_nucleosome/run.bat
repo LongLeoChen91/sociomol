@@ -15,7 +15,11 @@ sociomol predict ^
     --output examples/chlamy_cryoet_STA_nucleosome/ID_nucleosome_top3_tomos_annotated.star ^
     --edges  examples/chlamy_cryoet_STA_nucleosome/DoubleLinker_edges.csv ^
     --pixel-size 1.96 ^
-    --dist-cutoff 30
+    --dist-cutoff 30 ^
+    --max-bending 180.0 ^
+    --port-pairing any ^
+    --l0 20.0 ^
+    --theta0 90.0
 
 echo.
 REM echo === Evaluating against ground truth ===

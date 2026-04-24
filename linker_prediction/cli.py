@@ -38,7 +38,7 @@ def _build_predict_parser(subparsers):
                    help="Persistence length in nm (bending stiffness).")
     p.add_argument("--l0", type=float, default=20.0,
                    help="Reference length in nm (ideal connection distance).")
-    p.add_argument("--theta0", type=float, default=45.0,
+    p.add_argument("--theta0", type=float, default=90.0,
                    help="Reference angle for angle penalty in degrees.")
 
     # Component weights
@@ -67,8 +67,8 @@ def _build_predict_parser(subparsers):
     p.add_argument("--theta-mode", choices=["alpha_sum", "tangent_tangent"],
                    default="alpha_sum",
                    help="Angle calculation mode.")
-    p.add_argument("--max-half-bending", type=float, default=90.0,
-                   help="Maximum half-bending angle in degrees.")
+    p.add_argument("--max-bending", type=float, default=180.0,
+                   help="Maximum total bending angle in degrees (the internal half-bending threshold is max-bending / 2).")
 
     return p
 
@@ -133,7 +133,7 @@ def _run_predict(args):
         theta_std_deg=args.theta_std,
         port_pairing=args.port_pairing,
         theta_mode=args.theta_mode,
-        max_half_bending_deg=args.max_half_bending,
+        max_half_bending_deg=args.max_bending,
     )
 
 

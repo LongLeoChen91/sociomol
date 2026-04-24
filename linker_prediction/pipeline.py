@@ -27,8 +27,8 @@ def run_prediction_pipeline(
     theta_std_deg: float = 45.0,
     port_pairing: str = "any",
     theta_mode: str = "alpha_sum",
-    max_half_bending_deg: float = 90.0,
-):
+    max_bending_deg: float = 180.0,
+) -> None:
     """
     Runs the full DSU Linker assignment pipeline covering:
       - Reading the Relion STAR file
@@ -115,7 +115,7 @@ def run_prediction_pipeline(
             l_std_nm=l_std_nm,
             theta_std_deg=theta_std_deg,
             theta_mode=theta_mode,
-            max_half_bending_deg=max_half_bending_deg,
+            max_half_bending_deg=max_bending_deg,
             port_pairing=port_pairing
         )
         tomo_assignments, _ = assigner.run()

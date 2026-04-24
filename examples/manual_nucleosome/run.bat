@@ -15,7 +15,11 @@ sociomol predict ^
     --output examples/manual_nucleosome/H1_DoubleLinker_annotated.star ^
     --edges  examples/manual_nucleosome/DoubleLinker_edges.csv ^
     --pixel-size 8.0 ^
-    --dist-cutoff 30
+    --dist-cutoff 30 ^
+    --max-bending 180.0 ^
+    --port-pairing any ^
+    --l0 20.0 ^
+    --theta0 90.0
 
 echo.
 echo === Evaluating against ground truth ===
