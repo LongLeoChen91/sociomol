@@ -48,5 +48,8 @@ build-backend = "setuptools.build_meta"
 where = ["."]
 include = ["linker_prediction*"]
 
+[tool.setuptools.package-data]
+linker_prediction = ["arm_geometry/*.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

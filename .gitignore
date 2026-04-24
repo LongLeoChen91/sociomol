@@ -30,6 +30,7 @@ venv/
 # Generated outputs (produced when users run examples or predictions)
 # Placed after whitelist to ensure outputs are ignored even in examples/
 *_annotated.star
+*_arms.star
 *_edges.csv
 split_by_tomo/
 

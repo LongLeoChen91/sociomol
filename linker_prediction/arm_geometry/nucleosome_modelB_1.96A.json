@@ -1,0 +1,16 @@
+{
+  "name": "nucleosome_modelB_1.96A",
+  "description": "Nucleosome from STA model B, batch dataset (1.96 Angstrom pixel size)",
+  "arms": [
+    {
+      "anchor":          [ -3.92,  41.16, -35.28],
+      "direction_point": [ -3.92,  13.72, -41.16],
+      "tangent": "direction_point_to_anchor"
+    },
+    {
+      "anchor":          [ 17.64,  49.00,  23.52],
+      "direction_point": [ 13.72,  25.48,  39.20],
+      "tangent": "direction_point_to_anchor"
+    }
+  ]
+}

@@ -33,53 +33,149 @@ All runtime dependencies (`numpy`, `pandas`, `scipy`, `starfile`,
 
 ## Quick Start
 
+The complete workflow has three stages: **preprocess → predict → evaluate**.
+
 ```bash
-# 1. Predict linker connections
+# 1. Preprocess: convert a raw RELION STAR file to arm-annotated format
+sociomol preprocess \
+    --input  raw_particles.star \
+    --output H1_DoubleLinker.star \
+    --model  nucleosome_modelA_8A \
+    --pixel-size 8.0
+
+# 2. Predict linker connections
 sociomol predict \
-    --input  examples/nucleosome/H1_DoubleLinker.star \
+    --input  H1_DoubleLinker.star \
     --output H1_DoubleLinker_annotated.star \
     --edges  DoubleLinker_edges.csv \
     --pixel-size 8.0 \
     --dist-cutoff 30
 
-# 2. Evaluate against ground truth
+# 3. Evaluate against ground truth
 sociomol evaluate \
-    --truth examples/nucleosome/GroundTruth_edges_M1.csv \
+    --truth GroundTruth_edges.csv \
     --pred  DoubleLinker_edges.csv
 ```
 
-**Outputs of `sociomol predict`:**
+> **Note:** If your STAR file already contains `rlnLC_*` columns (arm
+> coordinates and Euler angles), you can skip the preprocessing step and go
+> directly to `sociomol predict`.
 
-| File | Description |
-|---|---|
-| `*_annotated.star` | Input STAR file augmented with `rlnLC_LinkPartnerArm0`, `rlnLC_LinkPartnerArm1`, and `rlnLC_ChainComponent` columns. |
-| `*_edges.csv` | Edge list with per-pair metrics: distance (D), arc length (L), bending angle (θ), assignment probability (P). |
+### Command outputs
 
-**Output of `sociomol evaluate`:**
+| Command | Output | Description |
+|---|---|---|
+| `preprocess` | `*.star` | Input STAR file augmented with `rlnLC_CoordinateX{N}`, `rlnLC_AngleRot{N}`, etc. for each arm and centre. |
+| `predict` | `*_annotated.star` | STAR file with `rlnLC_LinkPartnerArm0`, `rlnLC_LinkPartnerArm1`, and `rlnLC_ChainComponent` columns. |
+| `predict` | `*_edges.csv` | Edge list with per-pair metrics: distance (D), arc length (L), bending angle (θ), probability (P). |
+| `evaluate` | *(stdout)* | Arm-level Precision, Recall, and F1 Score. Add `--relaxed` for particle-level matching. |
 
-Prints arm-level Precision, Recall, and F1 Score to stdout. Add `--relaxed`
-for particle-level (less strict) matching.
+## Preprocessing and Geometry Models
+
+The `sociomol preprocess` command converts a standard RELION STAR file (with
+`rlnCoordinateX/Y/Z` and `rlnAngleRot/Tilt/Psi`) into an arm-annotated
+STAR file that the prediction pipeline requires.
+
+Arm geometry is defined by a **JSON configuration file** that describes the
+local-frame coordinates of each arm's exit point and tangent direction for a
+given particle type and subtomogram average.
+
+### Built-in models
+
+SocioMol ships with several built-in geometry models:
+
+| Model name | Particle type | Pixel size | Usage |
+|---|---|---|---|
+| `nucleosome_modelA_8A` | Nucleosome | 8.0 Å | Single-tomogram |
+| `nucleosome_modelB_1.96A` | Nucleosome | 1.96 Å | Batch (multiple tomos) |
+| `ribosome_modelX_1.96A` | Ribosome (80S) | 1.96 Å | Single-tomogram |
+| `ribosome_modelY_1.96A` | Ribosome (80S) | 1.96 Å | Batch (multiple tomos) |
+
+Use a built-in model with `--model <name>`:
+
+```bash
+sociomol preprocess --input raw.star --output arms.star \
+    --model nucleosome_modelA_8A --pixel-size 8.0
+```
+
+### Custom geometry models
+
+To create a geometry model for a new particle type or subtomogram average,
+write a JSON file following this schema:
+
+```json
+{
+  "name": "my_particle_model",
+  "description": "Optional description",
+  "arms": [
+    {
+      "anchor": [27.234, 15.130, 33.286],
+      "direction_point": [39.338, 15.130, 6.052],
+      "tangent": "direction_point_to_anchor"
+    },
+    {
+      "anchor": [-27.234, -15.130, 33.286],
+      "direction_point": [-39.338, -16.643, 6.052],
+      "tangent": "direction_point_to_anchor"
+    }
+  ]
+}
+```
+
+**Per-arm fields:**
+
+| Field | Type | Description |
+|---|---|---|
+| `anchor` | `[x, y, z]` | Arm exit-point in the particle's local frame (Å). Becomes `rlnLC_CoordinateX{N}` etc. |
+| `direction_point` | `[x, y, z]` | Reference point for computing the tangent direction. |
+| `tangent` | `string` | Tangent vector direction: `"direction_point_to_anchor"` or `"anchor_to_direction_point"`. |
+
+**How to choose the `tangent` direction:**
+The `anchor` acts as the precise Exit Point on your reference model. The `direction_point` acts as a flexible Guide Point to establish the trajectory vector. The correct `tangent` setting depends on whether you picked this guide point *inwards* or *outwards* relative to the anchor:
+
+*   **`"anchor_to_direction_point"` (Picked Outwards / Extended Density)**
+    *   **Use case:** You observe extended density protruding away from the model and pick a point along that density. Because this point is *outwards* relative to the anchor, the vector correctly points from the anchor out to the direction point.
+*   **`"direction_point_to_anchor"` (Picked Inwards)**
+    *   **Use case:** There is no visible extended density, so you pick a reference point *inwards* (deeper into the model, along the internal trajectory) relative to the anchor. Because this point is further inside, the vector must point from this inward point out through the anchor.
+
+A **centre feature** (suffix `0`) is automatically derived as the mean of all
+arm anchors and direction points.
+
+Use a custom model with `--model-json <path>`:
+
+```bash
+sociomol preprocess --input raw.star --output arms.star \
+    --model-json my_particle_model.json --pixel-size 5.0
+```
 
 ## Repository Layout
 
 ```
 sociomol/
-├── linker_prediction/   # Installable Python package (core algorithm + CLI)
-│   ├── pipeline.py      # Top-level run_prediction_pipeline() entry point
-│   ├── assigner.py      # Greedy assignment engine
-│   ├── probability.py   # Energy model and connection probability
-│   ├── graph.py         # Disjoint Set Union for cycle prevention
-│   ├── models.py        # Particle and LinkerAssignment dataclasses
-│   ├── linker_geometry.py  # Geometric utility functions
-│   ├── star_utils.py    # RELION STAR file I/O helpers
-│   ├── cli.py           # CLI entry point (sociomol predict / evaluate)
-│   └── cli_evaluate.py  # Edge evaluation logic
-├── examples/
-│   ├── nucleosome/      # 60-particle nucleosome demo + ground truth
-│   └── ribosome/        # 78-particle ribosome (polysome) demo + ground truth
-├── tests/               # pytest test suite (16 tests)
-├── pyproject.toml       # Package metadata and build configuration
-├── LICENSE              # MIT License
+├── linker_prediction/        # Installable Python package (core algorithm + CLI)
+│   ├── pipeline.py           # Top-level run_prediction_pipeline() entry point
+│   ├── preprocess.py         # Generalized preprocessing (raw STAR → arm-annotated)
+│   ├── assigner.py           # Greedy assignment engine
+│   ├── probability.py        # Energy model and connection probability
+│   ├── graph.py              # Disjoint Set Union for cycle prevention
+│   ├── models.py             # Particle and LinkerAssignment dataclasses
+│   ├── linker_geometry.py    # Geometric utility functions
+│   ├── star_utils.py         # RELION STAR file I/O helpers
+│   ├── cli.py                # CLI entry point (sociomol preprocess / predict / evaluate)
+│   ├── cli_evaluate.py       # Edge evaluation logic
+│   └── geometry_models/      # Built-in JSON geometry configs
+│       ├── nucleosome_modelA_8A.json
+│       ├── nucleosome_modelB_1.96A.json
+│       ├── ribosome_modelX_1.96A.json
+│       └── ribosome_modelY_1.96A.json
+├── examples/                 # Curated datasets for testing and demonstration
+│   ├── manual_nucleosome/    # 60-particle nucleosome demo + ground truth
+│   ├── manual_ribosome/      # 104-particle ribosome demo + ground truth
+│   ├── chlamy_cryoet_STA_nucleosome/  # 1449-particle nucleosome STA demo
+│   └── chlamy_cryoet_STA_ribosome/    # 4106-particle ribosome STA demo
+├── tests/                    # pytest test suite (35 tests)
+├── pyproject.toml            # Package metadata and build configuration
+├── LICENSE                   # MIT License
 └── README.md
 ```
 
@@ -100,13 +196,14 @@ sociomol/
 | Angle mode | `--theta-mode` | `alpha_sum` | `alpha_sum` or `tangent_tangent` |
 | Max half-bending | `--max-half-bending` | `90.0` | Maximum half-bending angle (deg) |
 
-Run `sociomol predict --help` or `sociomol evaluate --help` for the full list.
+Run `sociomol preprocess --help`, `sociomol predict --help`, or
+`sociomol evaluate --help` for the full list of options.
 
 ## How It Works
 
-SocioMol models each particle as a rigid body with two arms.  For every
-feasible pair of arms within the distance cutoff, it computes an assignment
-probability:
+SocioMol models each particle as a rigid body with two or more arms.  For
+every feasible pair of arms within the distance cutoff, it computes an
+assignment probability:
 
 ```
 P(L, θ) ∝ exp[ − w_L · (L / L₀)  −  w_θ · (θ/2 / θ₀)  −  w_WLC · E_WLC(L, θ) ]
@@ -125,19 +222,20 @@ Connected components are identified via BFS and written as
 
 ## Examples
 
-The `examples/` directory contains two curated datasets:
+The `examples/` directory contains curated datasets for testing and demonstration:
 
-| Dataset | Particle type | Pixel size (Å) | Particles |
-|---|---|---|---|
-| `examples/nucleosome/` | Nucleosome | 8.0 | 60 |
-| `examples/ribosome/` | Ribosome (polysome) | 1.96 | 78 |
+| Dataset | Particle type | Pixel size (Å) | Particles | Ground Truth |
+|---|---|---|---|---|
+| `examples/manual_nucleosome/` | Nucleosome | 8.0 | 60 | Yes |
+| `examples/manual_ribosome/` | Ribosome (polysome) | 1.96 | 104 | Yes |
+| `examples/chlamy_cryoet_STA_nucleosome/` | Nucleosome | 1.96 | 1449 | No |
+| `examples/chlamy_cryoet_STA_ribosome/` | Ribosome (80S) | 1.96 | 4106 | No |
 
-Each directory includes an input STAR file, a ground-truth edge CSV, and a
-`run.sh` script that runs a complete predict → evaluate cycle:
+Each directory includes a raw input STAR file and a `run.bat` script that runs the `preprocess` and `predict` stages (and `evaluate` where ground truth is available):
 
-```bash
-bash examples/nucleosome/run.sh
-bash examples/ribosome/run.sh
+```cmd
+examples\manual_nucleosome\run.bat
+examples\manual_ribosome\run.bat
 ```
 
 ## Python API
@@ -145,10 +243,20 @@ bash examples/ribosome/run.sh
 SocioMol can also be used directly from Python:
 
 ```python
-from linker_prediction import run_prediction_pipeline
+from linker_prediction import load_geometry, preprocess_star, run_prediction_pipeline
 
+# Stage 1: Preprocess
+geometry = load_geometry("nucleosome_modelA_8A")
+preprocess_star(
+    input_star="raw_particles.star",
+    output_star="preprocessed.star",
+    geometry=geometry,
+    pixel_size=8.0,
+)
+
+# Stage 2: Predict
 run_prediction_pipeline(
-    input_star="examples/nucleosome/H1_DoubleLinker.star",
+    input_star="preprocessed.star",
     output_star="output_annotated.star",
     edges_csv="output_edges.csv",
     pixel_size_a=8.0,
@@ -171,8 +279,6 @@ pytest tests/
 
 ## Limitations
 
-- Input STAR files must follow RELION conventions with `rlnLC_*` columns
-  (coordinates and Euler angles for two arms per particle).
 - The assignment algorithm is greedy; globally optimal assignment is not
   guaranteed for large, densely packed datasets.
 - Ground-truth evaluation (`sociomol evaluate`) requires arm-level

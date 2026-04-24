@@ -1,0 +1,16 @@
+{
+  "name": "ribosome_modelX_1.96A",
+  "description": "Ribosome 80S polysome from STA model X, single-tomogram dataset (1.96 Angstrom pixel size)",
+  "arms": [
+    {
+      "anchor":          [-38.220, -11.760, -43.120],
+      "direction_point": [-12.740, -71.540,  78.400],
+      "tangent": "direction_point_to_anchor"
+    },
+    {
+      "anchor":          [-12.740, -71.540,  78.400],
+      "direction_point": [-38.220, -11.760, -43.120],
+      "tangent": "direction_point_to_anchor"
+    }
+  ]
+}

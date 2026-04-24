@@ -15,10 +15,14 @@ from .linker_geometry import (
     midpoint_from_two_points,
 )
 from .pipeline import run_prediction_pipeline
+from .preprocess import preprocess_star, load_geometry, list_models
 
 __all__ = [
     "__version__",
     "run_prediction_pipeline",
+    "preprocess_star",
+    "load_geometry",
+    "list_models",
     "LinkerAssigner",
     "Particle",
     "LinkerAssignment",

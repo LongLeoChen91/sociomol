@@ -3,9 +3,10 @@
 """
 SocioMol command-line interface.
 
-Provides two subcommands:
-    sociomol predict   — run linker assignment on a STAR file
-    sociomol evaluate  — compare predicted edges against ground truth
+Provides three subcommands:
+    sociomol preprocess — convert a raw RELION STAR file to arm-annotated format
+    sociomol predict    — run linker assignment on a STAR file
+    sociomol evaluate   — compare predicted edges against ground truth
 """
 
 import argparse
@@ -72,6 +73,30 @@ def _build_predict_parser(subparsers):
     return p
 
 
+def _build_preprocess_parser(subparsers):
+    p = subparsers.add_parser(
+        "preprocess",
+        help="Convert a raw RELION STAR file to arm-annotated format.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    p.add_argument("--input", required=True, help="Input raw RELION STAR file.")
+    p.add_argument("--output", required=True, help="Output arm-annotated STAR file.")
+
+    model_group = p.add_mutually_exclusive_group(required=True)
+    model_group.add_argument(
+        "--model", default=None,
+        help="Built-in geometry model name (e.g. nucleosome_modelA_8A).",
+    )
+    model_group.add_argument(
+        "--model-json", default=None,
+        help="Path to a custom geometry JSON file.",
+    )
+
+    p.add_argument("--pixel-size", type=float, required=True,
+                   help="Pixel size in Angstroms per pixel.")
+    return p
+
+
 def _build_evaluate_parser(subparsers):
     p = subparsers.add_parser(
         "evaluate",
@@ -112,6 +137,19 @@ def _run_predict(args):
     )
 
 
+def _run_preprocess(args):
+    from .preprocess import load_geometry, preprocess_star
+
+    model_ref = args.model_json if args.model_json else args.model
+    geometry = load_geometry(model_ref)
+    preprocess_star(
+        input_star=args.input,
+        output_star=args.output,
+        geometry=geometry,
+        pixel_size=args.pixel_size,
+    )
+
+
 def _run_evaluate(args):
     from .cli_evaluate import evaluate_predictions
 
@@ -126,6 +164,7 @@ def main(argv=None):
     parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
 
     subparsers = parser.add_subparsers(dest="command")
+    _build_preprocess_parser(subparsers)
     _build_predict_parser(subparsers)
     _build_evaluate_parser(subparsers)
 
@@ -135,7 +174,9 @@ def main(argv=None):
         parser.print_help()
         sys.exit(0)
 
-    if args.command == "predict":
+    if args.command == "preprocess":
+        _run_preprocess(args)
+    elif args.command == "predict":
         _run_predict(args)
     elif args.command == "evaluate":
         _run_evaluate(args)

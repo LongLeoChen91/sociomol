@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-stick_utils.py
+linker_geometry.py
 Helper functions to build "stick" midpoints and Euler angles (Relion intrinsic ZYZ).
 
 Conventions

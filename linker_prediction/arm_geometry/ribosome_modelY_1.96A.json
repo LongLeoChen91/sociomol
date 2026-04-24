@@ -1,0 +1,16 @@
+{
+  "name": "ribosome_modelY_1.96A",
+  "description": "Ribosome 80S polysome from STA model Y, batch dataset (1.96 Angstrom pixel size)",
+  "arms": [
+    {
+      "anchor":          [-31.36, -29.40, -5.88],
+      "direction_point": [-25.48, -37.24,  7.84],
+      "tangent": "direction_point_to_anchor"
+    },
+    {
+      "anchor":          [-25.48, -37.24,  7.84],
+      "direction_point": [-31.36, -29.40, -5.88],
+      "tangent": "direction_point_to_anchor"
+    }
+  ]
+}

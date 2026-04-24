@@ -1,0 +1,16 @@
+{
+  "name": "nucleosome_modelA_8A",
+  "description": "Nucleosome from STA model A, original single-tomogram dataset (8 Angstrom pixel size)",
+  "arms": [
+    {
+      "anchor":          [ 27.234,  15.130, 33.286],
+      "direction_point": [ 39.338,  15.130,  6.052],
+      "tangent": "direction_point_to_anchor"
+    },
+    {
+      "anchor":          [-27.234, -15.130, 33.286],
+      "direction_point": [-39.338, -16.643,  6.052],
+      "tangent": "direction_point_to_anchor"
+    }
+  ]
+}
