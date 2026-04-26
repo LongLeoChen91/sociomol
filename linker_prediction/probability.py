@@ -9,7 +9,7 @@ def bending_energy_lp(L: float, theta: float, lp: float = 50.0) -> float:
 def connection_probability(L: float, theta: float, L0: float = 20.0, lp: float = 1.5,
                            w_wlc: float = 1.0, w_L: float = 1.0, w_th: float = 1.0, 
                            w_L_sq: float = 0.0, w_th_sq: float = 0.0,
-                           theta0_rad: float = math.pi/4.0,
+                           theta0_rad: float = math.pi/2.0,
                            L_ideal: float = 20.0, L_std: float = 10.0,
                            theta_std_rad: float = math.pi/4.0) -> float:
     """

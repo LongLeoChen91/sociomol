@@ -19,10 +19,14 @@ with a CSV edge list of predicted connections.
 git clone https://github.com/LongLeoChen91/sociomol.git
 cd sociomol
 
+# (Optional but recommended) Create and activate a Conda environment
+conda create -n sociomol python=3.10 -y
+conda activate sociomol
+
 # Install (editable, includes all runtime dependencies)
 pip install -e .
 
-# Install with test dependencies
+# (Optional) Install with test dependencies
 pip install -e ".[dev]"
 ```
 
@@ -201,13 +205,13 @@ sociomol/
 | Probability threshold | `--p-threshold` | `0.0` | Minimum probability to accept |
 | Persistence length | `--lp` | `50.0` | Bending stiffness (nm) |
 | Reference length | `--l0` | `20.0` | Ideal connection distance (nm) |
-| Reference angle | `--theta0` | `45.0` | Angle penalty reference (deg) |
+| Reference angle | `--theta0` | `90.0` | Angle penalty reference (deg) |
 | WLC weight | `--w-wlc` | `0.0` | Weight for WLC energy term |
 | Distance weight | `--w-l` | `1.0` | Weight for linear distance penalty |
 | Angle weight | `--w-th` | `1.0` | Weight for angle tolerance penalty |
 | Port pairing | `--port-pairing` | `any` | `any` or `complement` |
 | Angle mode | `--theta-mode` | `alpha_sum` | `alpha_sum` or `tangent_tangent` |
-| Max half-bending | `--max-half-bending` | `90.0` | Maximum half-bending angle (deg) |
+| Max bending | `--max-bending` | `180.0` | Maximum allowed total bending angle (deg) |
 
 Run `sociomol preprocess --help`, `sociomol predict --help`, or
 `sociomol evaluate --help` for the full list of options.
