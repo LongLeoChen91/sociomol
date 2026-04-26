@@ -23,11 +23,14 @@ cd sociomol
 conda create -n sociomol python=3.10 -y
 conda activate sociomol
 
-# Install (editable, includes all runtime dependencies)
-pip install -e .
+# Install the package for regular use
+pip install .
 
-# (Optional) Install with test dependencies
-pip install -e ".[dev]"
+# ==========================================
+# For Developers & Contributors ONLY
+# ==========================================
+# If you want to modify the code, install in editable mode with dev dependencies:
+# pip install -e ".[dev]"
 ```
 
 **Requires Python ≥ 3.9.**
