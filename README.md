@@ -15,28 +15,110 @@ with a CSV edge list of predicted connections.
 
 ## Installation
 
+**All platforms:** Conda (via [Miniconda](https://docs.anaconda.com/miniconda/) or [Anaconda](https://www.anaconda.com/download)) is required to manage the Python environment. Follow the platform-specific steps below.
+
+---
+
+### macOS
+
+**Step 1 — Install Miniconda**
+
+Download and run the installer for your chip architecture:
+
+```bash
+# Apple Silicon (M1 / M2 / M3)
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
+bash Miniconda3-latest-MacOSX-arm64.sh
+
+# Intel Mac
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+bash Miniconda3-latest-MacOSX-x86_64.sh
+```
+
+Follow the on-screen prompts. When asked whether to run `conda init`, answer **yes**. After the installer finishes, open a **new terminal window** so the changes take effect.
+
+**Step 2 — Create and activate the environment**
+
+```bash
+conda create -n sociomol python=3.10 -y
+conda activate sociomol
+```
+
+**Step 3 — Clone and install SocioMol**
+
 ```bash
 git clone https://github.com/LongLeoChen91/sociomol.git
 cd sociomol
-
-# (Optional but recommended) Create and activate a Conda environment
-conda create -n sociomol python=3.10 -y
-conda activate sociomol
-
-# Install the package for regular use
 pip install .
-
-# ==========================================
-# For Developers & Contributors ONLY
-# ==========================================
-# If you want to modify the code, install in editable mode with dev dependencies:
-# pip install -e ".[dev]"
 ```
 
-**Requires Python ≥ 3.9.**
+---
 
-All runtime dependencies (`numpy`, `pandas`, `scipy`, `starfile`,
-`eulerangles`, `scikit-learn`, `matplotlib`) are installed automatically.
+### Windows
+
+**Step 1 — Install Miniconda**
+
+Download the Windows installer:
+[**Miniconda3-latest-Windows-x86_64.exe**](https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe)
+
+Run the `.exe` and follow the prompts. On the *Advanced Options* screen, tick **"Add Miniconda3 to my PATH environment variable"**, or use the **Anaconda Prompt** shortcut that is added to the Start menu.
+
+**Step 2 — Create and activate the environment**
+
+Open **Anaconda Prompt** (or any terminal where `conda` is available) and run:
+
+```cmd
+conda create -n sociomol python=3.10 -y
+conda activate sociomol
+```
+
+**Step 3 — Clone and install SocioMol**
+
+```cmd
+git clone https://github.com/LongLeoChen91/sociomol.git
+cd sociomol
+pip install .
+```
+
+> **Note:** `git` must be on your PATH. If it is not installed, download it from https://git-scm.com/download/win and reopen the Anaconda Prompt.
+
+---
+
+### Linux
+
+**Step 1 — Install Miniconda**
+
+```bash
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+```
+
+Follow the on-screen prompts. When asked whether to run `conda init`, answer **yes**. After the installer finishes, close and reopen your terminal (or run `source ~/.bashrc`) so the `conda` command is available.
+
+**Step 2 — Create and activate the environment**
+
+```bash
+conda create -n sociomol python=3.10 -y
+conda activate sociomol
+```
+
+**Step 3 — Clone and install SocioMol**
+
+```bash
+git clone https://github.com/LongLeoChen91/sociomol.git
+cd sociomol
+pip install .
+```
+
+---
+
+All runtime dependencies (`numpy`, `pandas`, `scipy`, `starfile`, `eulerangles`, `scikit-learn`, `matplotlib`) are installed automatically by `pip install .`. **Requires Python ≥ 3.9.**
+
+**For developers:** install in editable mode with test dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
 
 ## Quick Start
 

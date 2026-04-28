@@ -32,7 +32,14 @@ venv/
 *_annotated.star
 *_arms.star
 *_edges.csv
+H1_DoubleLinker.star
+Avg_Linkers.star
+Linker_edges.csv
+DoubleLinker_edges.csv
 split_by_tomo/
+
+# Helper files
+CLAUDE.md
 
 # Always allow GroundTruth files
 !*GroundTruth*.csv
