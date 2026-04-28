@@ -15,107 +15,25 @@ with a CSV edge list of predicted connections.
 
 ## Installation
 
-**All platforms:** Conda (via [Miniconda](https://docs.anaconda.com/miniconda/) or [Anaconda](https://www.anaconda.com/download)) is required to manage the Python environment. Follow the platform-specific steps below.
-
----
-
-### macOS
-
-**Step 1 — Install Miniconda**
-
-Download and run the installer for your chip architecture:
+SocioMol requires **Python ≥ 3.9** and we recommend using **Conda** to manage your environment.
 
 ```bash
-# Apple Silicon (M1 / M2 / M3)
-curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
-bash Miniconda3-latest-MacOSX-arm64.sh
-
-# Intel Mac
-curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-bash Miniconda3-latest-MacOSX-x86_64.sh
-```
-
-Follow the on-screen prompts. When asked whether to run `conda init`, answer **yes**. After the installer finishes, open a **new terminal window** so the changes take effect.
-
-**Step 2 — Create and activate the environment**
-
-```bash
-conda create -n sociomol python=3.10 -y
-conda activate sociomol
-```
-
-**Step 3 — Clone and install SocioMol**
-
-```bash
+# 1. Clone the repository
 git clone https://github.com/LongLeoChen91/sociomol.git
 cd sociomol
+
+# 2. Setup environment (Recommended)
+conda create -n sociomol python=3.10 -y
+conda activate sociomol
+
+# 3. Install
 pip install .
 ```
 
----
+> [!TIP]
+> **New to Conda?** See our [Detailed Platform Installation Guide](#detailed-platform-installation-guide) at the bottom of this page for step-by-step instructions for macOS, Windows, and Linux.
 
-### Windows
-
-**Step 1 — Install Miniconda**
-
-Download the Windows installer:
-[**Miniconda3-latest-Windows-x86_64.exe**](https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe)
-
-Run the `.exe` and follow the prompts. On the *Advanced Options* screen, tick **"Add Miniconda3 to my PATH environment variable"**, or use the **Anaconda Prompt** shortcut that is added to the Start menu.
-
-**Step 2 — Create and activate the environment**
-
-Open **Anaconda Prompt** (or any terminal where `conda` is available) and run:
-
-```cmd
-conda create -n sociomol python=3.10 -y
-conda activate sociomol
-```
-
-**Step 3 — Clone and install SocioMol**
-
-```cmd
-git clone https://github.com/LongLeoChen91/sociomol.git
-cd sociomol
-pip install .
-```
-
-> **Note:** `git` must be on your PATH. If it is not installed, download it from https://git-scm.com/download/win and reopen the Anaconda Prompt.
-
----
-
-### Linux
-
-**Step 1 — Install Miniconda**
-
-```bash
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
-```
-
-Follow the on-screen prompts. When asked whether to run `conda init`, answer **yes**. After the installer finishes, close and reopen your terminal (or run `source ~/.bashrc`) so the `conda` command is available.
-
-**Step 2 — Create and activate the environment**
-
-```bash
-conda create -n sociomol python=3.10 -y
-conda activate sociomol
-```
-
-**Step 3 — Clone and install SocioMol**
-
-```bash
-git clone https://github.com/LongLeoChen91/sociomol.git
-cd sociomol
-pip install .
-```
-
----
-
-All runtime dependencies (`numpy`, `pandas`, `scipy`, `starfile`, `eulerangles`, `scikit-learn`, `matplotlib`) are installed automatically by `pip install .`. **Requires Python ≥ 3.9.**
-
-**For developers:** install in editable mode with test dependencies:
-
+**For developers:** Install in editable mode with test dependencies:
 ```bash
 pip install -e ".[dev]"
 ```
@@ -402,3 +320,102 @@ If you use SocioMol in your research, please cite:
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+
+
+---
+
+## Detailed Platform Installation Guide
+
+If you do not have Conda or Git installed, follow these specific steps for your operating system.
+
+### macOS
+
+**Step 1 — Install Miniconda**
+
+Download and run the installer for your chip architecture:
+
+```bash
+# Apple Silicon (M1 / M2 / M3)
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
+bash Miniconda3-latest-MacOSX-arm64.sh
+
+# Intel Mac
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+bash Miniconda3-latest-MacOSX-x86_64.sh
+```
+
+Follow the on-screen prompts. When asked whether to run `conda init`, answer **yes**. After the installer finishes, open a **new terminal window** so the changes take effect.
+
+**Step 2 — Create and activate the environment**
+
+```bash
+conda create -n sociomol python=3.10 -y
+conda activate sociomol
+```
+
+**Step 3 — Clone and install SocioMol**
+
+```bash
+git clone https://github.com/LongLeoChen91/sociomol.git
+cd sociomol
+pip install .
+```
+
+---
+
+### Windows
+
+**Step 1 — Install Miniconda**
+
+Download the Windows installer:
+[**Miniconda3-latest-Windows-x86_64.exe**](https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe)
+
+Run the `.exe` and follow the prompts. On the *Advanced Options* screen, tick **"Add Miniconda3 to my PATH environment variable"**, or use the **Anaconda Prompt** shortcut that is added to the Start menu.
+
+**Step 2 — Create and activate the environment**
+
+Open **Anaconda Prompt** (or any terminal where `conda` is available) and run:
+
+```cmd
+conda create -n sociomol python=3.10 -y
+conda activate sociomol
+```
+
+**Step 3 — Clone and install SocioMol**
+
+```cmd
+git clone https://github.com/LongLeoChen91/sociomol.git
+cd sociomol
+pip install .
+```
+
+> **Note:** `git` must be on your PATH. If it is not installed, download it from https://git-scm.com/download/win and reopen the Anaconda Prompt.
+
+---
+
+### Linux
+
+**Step 1 — Install Miniconda**
+
+```bash
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+```
+
+Follow the on-screen prompts. When asked whether to run `conda init`, answer **yes**. After the installer finishes, close and reopen your terminal (or run `source ~/.bashrc`) so the `conda` command is available.
+
+**Step 2 — Create and activate the environment**
+
+```bash
+conda create -n sociomol python=3.10 -y
+conda activate sociomol
+```
+
+**Step 3 — Clone and install SocioMol**
+
+```bash
+git clone https://github.com/LongLeoChen91/sociomol.git
+cd sociomol
+pip install .
+```
