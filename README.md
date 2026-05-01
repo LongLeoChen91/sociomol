@@ -115,15 +115,21 @@ sociomol preprocess --input raw.star --output arms.star \
 
 Determining the `anchor` and `direction_point` coordinates requires identifying
 precise 3D positions on your subtomogram average density. We provide a dedicated
-interactive web tool to streamline this process:
+interactive web tool, included in this repository, to streamline this process:
 
-🔗 **[sociomol_arm_builder](https://github.com/LongLeoChen91/sociomol_arm_builder)** — An interactive tool for picking arm coordinates from a density map and exporting a ready-to-use geometry JSON file.
+🔗 **[SocioMol Arm Builder](tools/arm_builder/)** — An interactive tool for picking arm coordinates from a density map and exporting a ready-to-use geometry JSON file.
 
-Once you have downloaded the JSON from the tool, use it directly:
+Launch the tool locally (no extra dependencies needed):
+
+```bash
+python tools/arm_builder/serve.py
+```
+
+Once you have exported the JSON from the tool, use it directly:
 
 ```bash
 sociomol preprocess --input raw.star --output arms.star \
-    --model-json my_particle_model.json --pixel-size 5.0
+    --model-json arm_geometry.json --pixel-size 5.0
 ```
 
 The exported `arm_geometry.json` is directly compatible with `sociomol preprocess --model-json` — no manual conversion needed.
@@ -183,11 +189,16 @@ sociomol/
 │   ├── star_utils.py         # RELION STAR file I/O helpers
 │   ├── cli.py                # CLI entry point (sociomol preprocess / predict / evaluate)
 │   ├── cli_evaluate.py       # Edge evaluation logic
-│   └── geometry_models/      # Built-in JSON geometry configs
+│   └── arm_geometry/         # Built-in JSON geometry configs
 │       ├── nucleosome_modelA_8A.json
 │       ├── nucleosome_modelB_1.96A.json
 │       ├── ribosome_modelX_1.96A.json
 │       └── ribosome_modelY_1.96A.json
+├── tools/                    # Companion utilities (not installed by pip)
+│   └── arm_builder/          # Interactive web tool for defining arm geometry
+│       ├── serve.py           # Zero-dependency local server launcher
+│       ├── static/            # Browser-based UI (HTML + JS + CSS)
+│       └── README.md          # Arm Builder documentation
 ├── examples/                 # Curated datasets for testing and demonstration
 │   ├── manual_nucleosome/    # 60-particle nucleosome demo + ground truth
 │   ├── manual_ribosome/      # 104-particle ribosome demo + ground truth
