@@ -159,7 +159,7 @@ def _run_evaluate(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="sociomol",
-        description="SocioMol: Physics-based linker assignment for cryo-ET particles.",
+        description="SocioMol: Inferring connectivity in polymer-linked assemblies from cryo-electron tomography.",
     )
     parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
 

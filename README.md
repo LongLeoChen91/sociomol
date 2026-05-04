@@ -66,6 +66,18 @@ Fit a known atomic structure (e.g. PDB/mmCIF) into your subtomogram average
 using an external tool such as ChimeraX, and save the fitted model in the map
 coordinate frame.
 
+Recommended reference models for supported particle types:
+
+| Particle type | Reference model | PDB |
+|---|---|---|
+| 80S ribosome | 80S ribosome | [6HCJ](https://www.rcsb.org/structure/6HCJ) |
+| 70S ribosome | 70S ribosome, Biological Assembly 1 | [4V5D](https://www.rcsb.org/structure/4V5D) |
+| Nucleosome | Nucleosome | [2CV5](https://www.rcsb.org/structure/2CV5) |
+
+These models match the canonical arm presets available in SocioMol Arm Builder
+(Step 2). Using the matching model ensures that the preset can automatically
+extract Anchor Point and Guide Point coordinates from the fitted structure.
+
 **Step 2 — Define arm geometry**
 
 Load the STA map and the fitted model in
@@ -115,10 +127,6 @@ sociomol evaluate \
     --pred  edges.csv
 ```
 
-> **Note:** If your STAR file already contains `rlnLC_*` columns (arm
-> coordinates and Euler angles), you can skip Stage 1 and go directly to
-> `sociomol predict`.
-
 ### Command outputs
 
 | Command | Output | Description |
@@ -158,28 +166,9 @@ sociomol preprocess --input raw.star --output arms.star \
 
 ### Custom geometry models
 
-**Recommended: Use the SocioMol Arm Builder**
-
-Determining the `anchor` and `direction_point` coordinates requires identifying
-precise 3D positions on your subtomogram average density. We provide a dedicated
-interactive web tool, included in this repository, to streamline this process:
-
-🔗 **[SocioMol Arm Builder](tools/arm_builder/)** — An interactive tool for picking arm coordinates from a density map and exporting a ready-to-use geometry JSON file.
-
-Launch the tool locally (no extra dependencies needed):
-
-```bash
-python tools/arm_builder/serve.py
-```
-
-Once you have exported the JSON from the tool, use it directly:
-
-```bash
-sociomol preprocess --input raw.star --output arms.star \
-    --model-json arm_geometry.json --pixel-size 5.0
-```
-
-The exported `arm_geometry.json` is directly compatible with `sociomol preprocess --model-json` — no manual conversion needed.
+Use [SocioMol Arm Builder](tools/arm_builder/) to interactively define arm
+geometry and export a ready-to-use JSON file (see Workflow
+[Step 2](#preparation) above).
 
 Alternatively, you can write the JSON manually following the schema below:
 
