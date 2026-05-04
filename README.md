@@ -40,37 +40,84 @@ pip install -e ".[dev]"
 
 ## Quick Start
 
-The complete workflow has three stages: **preprocess → predict → evaluate**.
+Run a complete demo with included example data:
+
+```cmd
+examples\manual_nucleosome\run.bat
+```
+```bash
+bash examples/manual_nucleosome/run.sh
+```
+
+This runs the full pipeline (preprocess → predict → evaluate) on a
+60-particle nucleosome dataset using a built-in geometry model, so you can
+see SocioMol in action before preparing your own data.
+
+## Workflow
+
+For your own data, two preparation steps are needed before running the
+SocioMol pipeline.
+
+### Preparation
+
+**Step 1 — Fit a reference model**
+
+Fit a known atomic structure (e.g. PDB/mmCIF) into your subtomogram average
+using an external tool such as ChimeraX, and save the fitted model in the map
+coordinate frame.
+
+**Step 2 — Define arm geometry**
+
+Load the STA map and the fitted model in
+[SocioMol Arm Builder](tools/arm_builder/), pick the Anchor Point and Guide
+Point for each arm, and export `arm_geometry.json`. No extra dependencies are
+needed:
 
 ```bash
-# 1. Preprocess: convert a raw RELION STAR file to arm-annotated format
+python tools/arm_builder/serve.py
+```
+
+See [Preprocessing and Geometry Models](#preprocessing-and-geometry-models)
+below for built-in models and the JSON schema reference.
+
+### Pipeline: preprocess → predict → evaluate
+
+**Stage 1 — Preprocess:** convert a raw RELION STAR file to arm-annotated format.
+
+```bash
 sociomol preprocess \
     --input  raw_particles.star \
-    --output H1_DoubleLinker.star \
-    --model  nucleosome_modelA_8A \
-    --pixel-size 8.0
+    --output arms.star \
+    --model-json arm_geometry.json \
+    --pixel-size 5.0
+```
 
-# 2. Predict linker connections
+**Stage 2 — Predict:** assign linker connections.
+
+```bash
 sociomol predict \
-    --input  H1_DoubleLinker.star \
-    --output H1_DoubleLinker_annotated.star \
-    --edges  DoubleLinker_edges.csv \
-    --pixel-size 8.0 \
+    --input  arms.star \
+    --output arms_annotated.star \
+    --edges  edges.csv \
+    --pixel-size 5.0 \
     --dist-cutoff 30 \
     --max-bending 180.0 \
     --port-pairing any \
     --l0 20.0 \
     --theta0 90.0
+```
 
-# 3. Evaluate against ground truth
+**Stage 3 — Evaluate (optional):** compare predictions against ground truth.
+
+```bash
 sociomol evaluate \
     --truth GroundTruth_edges.csv \
-    --pred  DoubleLinker_edges.csv
+    --pred  edges.csv
 ```
 
 > **Note:** If your STAR file already contains `rlnLC_*` columns (arm
-> coordinates and Euler angles), you can skip the preprocessing step and go
-> directly to `sociomol predict`.
+> coordinates and Euler angles), you can skip Stage 1 and go directly to
+> `sociomol predict`.
 
 ### Command outputs
 
