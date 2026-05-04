@@ -42,9 +42,12 @@ pip install -e ".[dev]"
 
 Run a complete demo with included example data:
 
+**Windows:**
 ```cmd
 examples\manual_nucleosome\run.bat
 ```
+
+**macOS / Linux:**
 ```bash
 bash examples/manual_nucleosome/run.sh
 ```
@@ -195,8 +198,8 @@ Alternatively, you can write the JSON manually following the schema below:
 
 | Field | Type | Description |
 |---|---|---|
-| `anchor` | `[x, y, z]` | Arm exit-point in the particle's local frame (Å). Becomes `rlnLC_CoordinateX{N}` etc. |
-| `direction_point` | `[x, y, z]` | Reference point for computing the tangent direction. |
+| `anchor` | `[x,y,z]` | Arm exit-point in the particle's local frame (Å). Becomes `rlnLC_CoordinateX{N}` etc. |
+| `direction_point` | `[x,y,z]` | Reference point for computing the tangent direction. |
 | `tangent` | `string` | Tangent vector direction: `"direction_point_to_anchor"` or `"anchor_to_direction_point"`. |
 
 **How to choose the `tangent` direction:**
