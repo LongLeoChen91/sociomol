@@ -94,7 +94,7 @@ A fitted model is recommended for visual picking, but it is not required for man
 
 ## Canonical Arm Presets
 
-Supported fitted models can generate arms automatically from predefined residue or atom selections. These canonical presets are defined from specific public reference models, not arbitrary models. Each preset uses predefined chain, residue, and atom selections to generate Anchor Point and Guide Point coordinates from the fitted model.
+Supported fitted models can generate arms automatically from predefined residue-number and atom-name selections. These canonical presets are defined from specific public reference models, not arbitrary models. Each preset uses predefined chain, residue-number, and atom-name selections to generate Anchor Point and Guide Point coordinates from the fitted model.
 
 Generated canonical coordinates use the same map-box-centered Angstrom coordinate system as manual picking.
 

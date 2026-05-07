@@ -10,7 +10,7 @@ export const CANONICAL_MODEL_PRESETS = [
     key: "6hcj",
     label: "6HCJ 80S ribosome",
     description:
-      "Generate A-site and E-site mRNA arms from chain v3 residue centroids.",
+      "Generate A-site and E-site mRNA arms from selected C4' atoms on chain v3.",
     referenceGeometry: [
       { type: "chain", chain: "q3" },
       { type: "chain", chain: "33" },
@@ -52,10 +52,55 @@ export const CANONICAL_MODEL_PRESETS = [
     ],
   },
   {
+    key: "6hcj_remote",
+    label: "6HCJ 80S ribosome, remote mRNA ends",
+    description:
+      "Generate remote/distal A-side and E-side mRNA arms from chain v3 C4' atom positions.",
+    referenceGeometry: [
+      { type: "chain", chain: "q3" },
+      { type: "chain", chain: "33" },
+      { type: "chain", chain: "v3" },
+    ],
+    arms: [
+      {
+        name: "Remote A-site mRNA end",
+        anchor: {
+          mode: "atom_average",
+          atoms: [
+            { chain: "v3", residue: 41, atom: "C4'" },
+          ],
+        },
+        guidePoint: {
+          mode: "atom_average",
+          atoms: [
+            { chain: "v3", residue: 34, atom: "C4'" },
+          ],
+        },
+        tangent: "direction_point_to_anchor",
+      },
+      {
+        name: "Remote E-site mRNA end",
+        anchor: {
+          mode: "atom_average",
+          atoms: [
+            { chain: "v3", residue: 20, atom: "C4'" },
+          ],
+        },
+        guidePoint: {
+          mode: "atom_average",
+          atoms: [
+            { chain: "v3", residue: 26, atom: "C4'" },
+          ],
+        },
+        tangent: "direction_point_to_anchor",
+      },
+    ],
+  },
+  {
     key: "4v5d_ba1",
     label: "4V5D 70S ribosome, Biological Assembly 1",
     description:
-      "Generate A-site and E-site mRNA arms from chain AX residue centroids.",
+      "Generate A-site and E-site mRNA arms from selected C4' atoms on chain AX.",
     referenceGeometry: [
       { type: "chain", chain: "AX" },
       { type: "chain", chain: "AY" },
