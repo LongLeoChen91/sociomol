@@ -234,10 +234,15 @@ sociomol/
 │       ├── ribosome_modelX_1.96A.json
 │       └── ribosome_modelY_1.96A.json
 ├── tools/                    # Companion utilities (not installed by pip)
-│   └── arm_builder/          # Interactive web tool for defining arm geometry
-│       ├── serve.py           # Zero-dependency local server launcher
-│       ├── static/            # Browser-based UI (HTML + JS + CSS)
-│       └── README.md          # Arm Builder documentation
+│   ├── arm_builder/          # Interactive web tool for defining arm geometry
+│   │   ├── serve.py           # Zero-dependency local server launcher
+│   │   ├── static/            # Browser-based UI (HTML + JS + CSS)
+│   │   └── README.md          # Arm Builder documentation
+│   └── postprocess/          # Post-prediction analysis and visualisation
+│       ├── build_3d_linkers.py       # Convert edges to 3D stick particles
+│       ├── rank_chain_components.py  # Chain-component size histogram + CSV
+│       ├── append_component_labels.py # Merge component labels into STAR file
+│       └── README.md                 # Post-processing documentation
 ├── examples/                 # Curated datasets for testing and demonstration
 │   ├── manual_nucleosome/    # 60-particle nucleosome demo + ground truth
 │   ├── manual_ribosome/      # 104-particle ribosome demo + ground truth

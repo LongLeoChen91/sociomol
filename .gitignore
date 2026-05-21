@@ -43,3 +43,5 @@ CLAUDE.md
 
 # Always allow GroundTruth files
 !*GroundTruth*.csv
+# Private experimental datasets
+New_examples/

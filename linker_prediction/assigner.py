@@ -214,14 +214,16 @@ class LinkerAssigner:
         for idx, (i, j) in enumerate(candidates):
             t_ij = theta[idx]
             l_ij = L[idx]
+            d_ij = D[idx]  # Access D array
             p_ij = np.zeros((2, 2), dtype=np.float64)
             for arm_i in (0, 1):
                 for arm_j in (0, 1):
                     if feasible[idx, arm_i, arm_j]:
                         l_val = l_ij[arm_i, arm_j]
+                        d_val = d_ij[arm_i, arm_j]
                         t_val = t_ij[arm_i, arm_j]
                         p_ij[arm_i, arm_j] = connection_probability(
-                            float(l_val), float(t_val), L0=self.L0, lp=self.lp,
+                            float(d_val), float(t_val), L0=self.L0, lp=self.lp,
                             w_wlc=self.w_wlc, w_L=self.w_L, w_th=self.w_th, 
                             w_L_sq=self.w_L_sq, w_th_sq=self.w_th_sq,
                             theta0_rad=self.theta0_rad,
