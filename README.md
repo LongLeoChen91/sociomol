@@ -240,8 +240,8 @@ sociomol/
 │   │   └── README.md          # Arm Builder documentation
 │   └── postprocess/          # Post-prediction analysis and visualisation
 │       ├── build_3d_linkers.py       # Convert edges to 3D stick particles
-│       ├── rank_chain_components.py  # Chain-component size histogram + CSV
-│       ├── append_component_labels.py # Merge component labels into STAR file
+│       ├── analyze_component_sizes.py # Chain-component size histogram + CSV
+│       ├── merge_component_sizes.py  # Merge component labels into STAR file
 │       └── README.md                 # Post-processing documentation
 ├── examples/                 # Curated datasets for testing and demonstration
 │   ├── manual_nucleosome/    # 60-particle nucleosome demo + ground truth

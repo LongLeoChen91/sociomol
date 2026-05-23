@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-plot_chain_distribution.py — Visualise chain-component size distribution.
+analyze_component_sizes.py — Visualise chain-component size distribution.
 
 Reads an annotated STAR file (output of ``sociomol predict``), counts how
 many particles belong to each connected component, and produces:
@@ -44,7 +44,7 @@ def main():
     comp_sizes = df["rlnLC_ChainComponent"].value_counts().sort_index()
 
     # ---- Ranked CSV ----
-    sorted_df = comp_sizes.sort_values(ascending=False).to_frame("count")
+    sorted_df = comp_sizes.sort_values(ascending=False).to_frame("rlnLC_ComponentSize")
     sorted_df["rlnLC_ComponentSizeRank"] = range(1, len(sorted_df) + 1)
     sorted_df.to_csv(args.out_csv)
     print(f"Sorted CSV with rank saved to {args.out_csv}")

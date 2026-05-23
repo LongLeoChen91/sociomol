@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-merge_component_rank.py — Add a size-rank column to a STAR file.
+merge_component_sizes.py — Add a size-rank column to a STAR file.
 
-Reads a ranked component-size CSV (from ``plot_chain_distribution.py``)
+Reads a ranked component-size CSV (from ``analyze_component_sizes.py``)
 and a STAR file containing ``rlnLC_ChainComponent``.  Merges a
 ``rlnLC_ComponentSizeRank`` column into the output so that downstream
 tools can filter or colour particles by chain-component rank.
@@ -35,8 +35,8 @@ def main():
 
     # ---- Load ranked CSV ----
     comp_df = pd.read_csv(args.csv, index_col=0)
-    if "count" not in comp_df.columns:
-        raise ValueError("CSV must contain a 'count' column.")
+    if "rlnLC_ComponentSize" not in comp_df.columns:
+        raise ValueError("CSV must contain a 'rlnLC_ComponentSize' column.")
 
     # ---- Load STAR ----
     data = starfile.read(args.input_star, always_dict=True)
@@ -61,15 +61,16 @@ def main():
         else:
             raise ValueError(f"Column '{col}' not found in the STAR file and no --ref-star provided.")
 
-    # ---- Merge rank ----
-    rank_col = "rlnLC_ComponentSizeRank"
-    if rank_col in comp_df.columns:
-        rank_series = comp_df[rank_col].copy()
-        rank_series.index = rank_series.index.astype(str)
-        df[rank_col] = df[col].astype(str).map(rank_series.to_dict())
-        print(f"[INFO] Added column '{rank_col}' to STAR.")
-    else:
-        raise ValueError(f"Column '{rank_col}' not found in CSV.")
+    # ---- Merge columns from CSV ----
+    cols_to_merge = ["rlnLC_ComponentSize", "rlnLC_ComponentSizeRank"]
+    for merge_col in cols_to_merge:
+        if merge_col in comp_df.columns:
+            merge_series = comp_df[merge_col].copy()
+            merge_series.index = merge_series.index.astype(str)
+            df[merge_col] = df[col].astype(str).map(merge_series.to_dict())
+            print(f"[INFO] Added column '{merge_col}' to STAR.")
+        else:
+            print(f"[WARN] Column '{merge_col}' not found in CSV, skipping.")
 
     # ---- Write ----
     if "particles" in data:
