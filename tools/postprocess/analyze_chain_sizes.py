@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-analyze_component_sizes.py — Visualise chain-component size distribution.
+analyze_chain_sizes.py — Visualise chain size distribution.
 
 Reads an annotated STAR file (output of ``sociomol predict``), counts how
-many particles belong to each connected component, and produces:
+many particles belong to each chain, and produces:
 
-1. A ranked CSV summarising component sizes (sorted descending).
-2. A histogram PNG showing the distribution of component sizes.
+1. A ranked CSV summarising chain sizes (sorted descending).
+2. A histogram PNG showing the distribution of chain sizes.
 
 Requires: pandas, starfile, matplotlib
 """
@@ -23,36 +23,45 @@ import starfile
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Plot chain-component size distribution from an annotated STAR file.",
+        description="Plot chain size distribution from an annotated STAR file.",
     )
     parser.add_argument("--annotated", required=True,
                         help="Input annotated STAR file (from sociomol predict).")
     parser.add_argument("--out-csv", required=True,
-                        help="Output CSV with ranked component sizes.")
+                        help="Output CSV with ranked chain sizes.")
     parser.add_argument("--out-plot", required=True,
                         help="Output PNG histogram.")
     parser.add_argument("--show", action="store_true",
                         help="Open an interactive plot window after saving.")
     parser.add_argument("--min-plot-size", type=int, default=2,
-                        help="Minimum component size to include in the histogram plot (default: 2).")
+                        help="Minimum chain size to include in the histogram plot (default: 2).")
     args = parser.parse_args()
 
     # ---- Load ----
     df = starfile.read(args.annotated)
 
-    # ---- Count components ----
+    # ---- Count chains ----
     comp_sizes = df["rlnLC_ChainComponent"].value_counts().sort_index()
 
     # ---- Ranked CSV ----
-    sorted_df = comp_sizes.sort_values(ascending=False).to_frame("rlnLC_ComponentSize")
-    sorted_df["rlnLC_ComponentSizeRank"] = range(1, len(sorted_df) + 1)
-    sorted_df.to_csv(args.out_csv)
+    sorted_df = comp_sizes.sort_values(ascending=False).to_frame("ChainSize")
+    sorted_df["ChainSizeRank"] = range(1, len(sorted_df) + 1)
+    sorted_df = sorted_df.reset_index().rename(columns={"rlnLC_ChainComponent": "ChainID"})
+    
+    if "rlnTomoName" in df.columns:
+        tomo_mapping = df.drop_duplicates(subset=["rlnLC_ChainComponent"]).set_index("rlnLC_ChainComponent")["rlnTomoName"]
+        sorted_df["TomoName"] = sorted_df["ChainID"].map(tomo_mapping)
+        sorted_df = sorted_df[["TomoName", "ChainID", "ChainSize", "ChainSizeRank"]]
+    else:
+        sorted_df = sorted_df[["ChainID", "ChainSize", "ChainSizeRank"]]
+
+    sorted_df.to_csv(args.out_csv, index=False)
     print(f"Sorted CSV with rank saved to {args.out_csv}")
 
     # ---- Histogram ----
     plot_sizes = comp_sizes[comp_sizes >= args.min_plot_size]
     if len(plot_sizes) == 0:
-        print(f"[WARN] No components with size >= {args.min_plot_size} to plot. Exiting.")
+        print(f"[WARN] No chains with size >= {args.min_plot_size} to plot. Exiting.")
         return
 
     size_counts = plot_sizes.value_counts().sort_index()

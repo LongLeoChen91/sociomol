@@ -50,7 +50,7 @@ def main():
             
             # Add tomo name as a column for traceability (parent dir name)
             tomo_name = file_path.parent.name
-            df.insert(0, "Tomo", tomo_name)
+            df.insert(0, "TomoName", tomo_name)
             all_dfs.append(df)
             total_pairs += len(df)
             print(f"  Loaded {len(df)} pairs from {tomo_name}")
@@ -59,7 +59,7 @@ def main():
 
     if not all_dfs:
         print("[WARN] All distance CSVs are empty. Exiting gracefully.")
-        pd.DataFrame(columns=["Tomo", "ChainA", "ChainA_Size", "ChainB", "ChainB_Size", "ChainDistance_nm"]).to_csv(args.out_csv, index=False)
+        pd.DataFrame(columns=["TomoName", "ChainA", "ChainA_Size", "ChainB", "ChainB_Size", "ChainDistance_nm"]).to_csv(args.out_csv, index=False)
         plt.figure()
         plt.title("No chains found across all tomograms")
         plt.savefig(args.out_plot)

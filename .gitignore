@@ -45,3 +45,6 @@ CLAUDE.md
 !*GroundTruth*.csv
 # Private experimental datasets
 New_examples/
+
+# AI Agent config
+.antigravityrules
