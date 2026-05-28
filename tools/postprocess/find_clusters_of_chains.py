@@ -95,16 +95,30 @@ def _cluster_per_tomo(args):
     ).reset_index()
 
     # Drop old stats if re-running, then merge fresh ones
-    for col in ["ClusterChainCount", "ClusterParticleCount"]:
+    for col in ["ClusterChainCount", "ClusterParticleCount", "ChainNND_nm", "NearestChainID"]:
         if col in sizes_df.columns:
             sizes_df = sizes_df.drop(columns=[col])
 
     sizes_df = sizes_df.merge(cluster_stats, on="ClusterID", how="left")
 
-    # Ensure cluster columns are at the end
-    base_cols = [c for c in sizes_df.columns
-                 if c not in ("ClusterID", "ClusterChainCount", "ClusterParticleCount")]
-    sizes_df = sizes_df[base_cols + ["ClusterID", "ClusterChainCount", "ClusterParticleCount"]]
+    # Compute NND (nearest neighbor distance) and NearestChainID for each chain
+    if not dist_df.empty and "ChainDistance_nm" in dist_df.columns:
+        df_a = dist_df[["ChainA", "ChainB", "ChainDistance_nm"]].rename(columns={"ChainA": "Chain", "ChainB": "OtherChain"})
+        df_b = dist_df[["ChainB", "ChainA", "ChainDistance_nm"]].rename(columns={"ChainB": "Chain", "ChainA": "OtherChain"})
+        df_all = pd.concat([df_a, df_b]).reset_index(drop=True)
+        
+        idx = df_all.groupby("Chain")["ChainDistance_nm"].idxmin()
+        nearest = df_all.loc[idx, ["Chain", "OtherChain", "ChainDistance_nm"]]
+        nearest = nearest.rename(columns={"OtherChain": "NearestChainID", "ChainDistance_nm": "ChainNND_nm"}).set_index("Chain")
+        sizes_df = sizes_df.merge(nearest, left_on="ChainID", right_index=True, how="left")
+        
+    sizes_df["ChainNND_nm"] = sizes_df.get("ChainNND_nm", pd.Series(dtype=float)).fillna(9999.0)
+    sizes_df["NearestChainID"] = sizes_df.get("NearestChainID", pd.Series(dtype=object)).fillna("9999")
+
+    # Ensure cluster + NND columns are at the end
+    tail_cols = ["ChainNND_nm", "NearestChainID", "ClusterID", "ClusterChainCount", "ClusterParticleCount"]
+    base_cols = [c for c in sizes_df.columns if c not in tail_cols]
+    sizes_df = sizes_df[base_cols + tail_cols]
 
     sizes_df.to_csv(args.out_csv, index=False)
 
@@ -153,6 +167,8 @@ def _merge_global(args):
                 "ClusterID": global_cluster_id,
                 "ClusterChainCount": int(row["ClusterChainCount"]),
                 "ClusterParticleCount": int(row["ClusterParticleCount"]),
+                "ChainNND_nm": float(row.get("ChainNND_nm", 9999.0)),
+                "NearestChainID": str(row.get("NearestChainID", "9999")),
             }
 
     # Map into global dataframe
@@ -161,10 +177,12 @@ def _merge_global(args):
         return s[:-2] if s.endswith('.0') else s
         
     global_df["_key"] = global_df["TomoName"].astype(str) + "_" + global_df["ChainID"].apply(clean_id)
-    for col in ["ClusterID", "ClusterChainCount", "ClusterParticleCount"]:
+    for col in ["ClusterID", "ClusterChainCount", "ClusterParticleCount", "ChainNND_nm", "NearestChainID"]:
         global_df[col] = global_df["_key"].map(
             lambda x, c=col: chain_info.get(x, {}).get(c)
         )
+    global_df["ChainNND_nm"] = global_df["ChainNND_nm"].fillna(9999.0)
+    global_df["NearestChainID"] = global_df["NearestChainID"].fillna("9999")
     global_df = global_df.drop(columns=["_key"])
 
     global_df.to_csv(args.out_csv, index=False)

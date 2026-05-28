@@ -48,6 +48,14 @@ def main():
     if df is None:
         raise ValueError("Could not find a particles table in the STAR file.")
 
+    if df.empty:
+        print("[WARN] Input STAR file is empty (0 rows). Writing empty output.")
+        if "particles" in data:
+            starfile.write(data, args.output_star, overwrite=True)
+        else:
+            starfile.write({"particles": df}, args.output_star, overwrite=True)
+        return
+
     col = "rlnLC_ChainComponent"
     if col not in df.columns:
         if args.ref_star:
@@ -68,7 +76,8 @@ def main():
         "ChainSizeRank": "rlnLC_ComponentSizeRank",
         "ClusterID": "rlnLC_ClusterID",
         "ClusterChainCount": "rlnLC_ClusterChainCount",
-        "ClusterParticleCount": "rlnLC_ClusterParticleCount"
+        "ClusterParticleCount": "rlnLC_ClusterParticleCount",
+        "ChainNND_nm": "rlnLC_ChainNND_nm"
     }
     for csv_col, star_col in cols_to_merge.items():
         if csv_col in comp_df.columns:
