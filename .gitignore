@@ -48,3 +48,10 @@ New_examples/
 
 # AI Agent config
 .antigravityrules
+
+# Cryo-EM / Tomography volume files
+*.mrc
+
+# Generated cylinder output directories
+cylinders_out_solid/
+cylinders_out/
