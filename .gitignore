@@ -40,7 +40,6 @@ split_by_tomo/
 
 # Helper files
 CLAUDE.md
-ARCHITECTURE_RULES.md
 # Always allow GroundTruth files
 !*GroundTruth*.csv
 # Private experimental datasets
