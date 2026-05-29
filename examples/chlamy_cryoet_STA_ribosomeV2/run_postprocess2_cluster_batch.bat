@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0\..\.."
 echo === Running SocioMol Post-processing: Clustering ===
 
-set BASE=New_examples/chlamy_cryoet_STA_ribosomeV2
+set BASE=examples/chlamy_cryoet_STA_ribosomeV2
 set CLUSTER_THRESHOLD=30.0
 
 echo.

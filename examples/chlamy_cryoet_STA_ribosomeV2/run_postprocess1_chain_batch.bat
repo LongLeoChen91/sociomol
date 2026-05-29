@@ -3,8 +3,9 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0\..\.."
 echo === Running SocioMol Post-processing: Chain Analysis ===
 
-set BASE=New_examples/chlamy_cryoet_STA_ribosomeV2
+set BASE=examples/chlamy_cryoet_STA_ribosomeV2
 set RAW_STAR=%BASE%/ID_ribosome80s_top3_tomos.star
+set PIXEL_SIZE=1.96
 
 if not exist "%BASE%/postprocess_output" mkdir "%BASE%/postprocess_output"
 
@@ -52,7 +53,7 @@ for /D %%T in (%BASE%/postprocess_output\*) do (
         --particles "%%T\annotated.star" ^
         --edges "%%T\edges.csv" ^
         --output "%%T\Linker_Sticks.star" ^
-        --pixel-size 1.96
+        --pixel-size %PIXEL_SIZE%
     if !errorlevel! neq 0 exit /b !errorlevel!
 
     echo   [4/5] Merging chain rank into sticks STAR...
@@ -67,7 +68,7 @@ for /D %%T in (%BASE%/postprocess_output\*) do (
         --star "%%T\chain_particles.star" ^
         --out-csv "%%T\inter_chain_distances.csv" ^
         --out-plot "%%T\inter_chain_distance_hist.png" ^
-        --pixel-size 1.96 ^
+        --pixel-size %PIXEL_SIZE% ^
         --min-size 2 ^
         --cutoff 40.0
     if !errorlevel! neq 0 exit /b !errorlevel!
