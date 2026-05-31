@@ -112,8 +112,8 @@ def _cluster_per_tomo(args):
         nearest = nearest.rename(columns={"OtherChain": "NearestChainID", "ChainDistance_nm": "ChainNND_nm"}).set_index("Chain")
         sizes_df = sizes_df.merge(nearest, left_on="ChainID", right_index=True, how="left")
         
-    sizes_df["ChainNND_nm"] = sizes_df.get("ChainNND_nm", pd.Series(dtype=float)).fillna(9999.0)
-    sizes_df["NearestChainID"] = sizes_df.get("NearestChainID", pd.Series(dtype=object)).fillna("9999")
+    sizes_df["ChainNND_nm"] = sizes_df.get("ChainNND_nm", pd.Series(dtype=float)).fillna(-9999.0)
+    sizes_df["NearestChainID"] = sizes_df.get("NearestChainID", pd.Series(dtype=object)).fillna("-9999")
 
     # Ensure cluster + NND columns are at the end
     tail_cols = ["ChainNND_nm", "NearestChainID", "ClusterID", "ClusterChainCount", "ClusterParticleCount"]
@@ -167,8 +167,8 @@ def _merge_global(args):
                 "ClusterID": global_cluster_id,
                 "ClusterChainCount": int(row["ClusterChainCount"]),
                 "ClusterParticleCount": int(row["ClusterParticleCount"]),
-                "ChainNND_nm": float(row.get("ChainNND_nm", 9999.0)),
-                "NearestChainID": str(row.get("NearestChainID", "9999")),
+                "ChainNND_nm": float(row.get("ChainNND_nm", -9999.0)),
+                "NearestChainID": str(row.get("NearestChainID", "-9999")),
             }
 
     # Map into global dataframe
@@ -181,8 +181,8 @@ def _merge_global(args):
         global_df[col] = global_df["_key"].map(
             lambda x, c=col: chain_info.get(x, {}).get(c)
         )
-    global_df["ChainNND_nm"] = global_df["ChainNND_nm"].fillna(9999.0)
-    global_df["NearestChainID"] = global_df["NearestChainID"].fillna("9999")
+    global_df["ChainNND_nm"] = global_df["ChainNND_nm"].fillna(-9999.0)
+    global_df["NearestChainID"] = global_df["NearestChainID"].fillna("-9999")
     global_df = global_df.drop(columns=["_key"])
 
     global_df.to_csv(args.out_csv, index=False)
