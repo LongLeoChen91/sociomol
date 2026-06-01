@@ -16,6 +16,7 @@ Requires: numpy, pandas, starfile, linker_prediction (``pip install .``)
 """
 
 import argparse
+import math
 import sys
 
 import numpy as np
@@ -174,7 +175,25 @@ def main():
         mid_nm = midpoint_from_two_points(p_i, p_j)
         mid_px = mid_nm * 10 / pixel_size_a
         dist = float(np.linalg.norm(p_j - p_i))
-        rot, tilt, psi = euler_zyz_from_two_points(p_i, p_j)
+        # Compute Euler angles directly from direction vector.
+        # Bypasses eulerangles.matrix2euler which has a decomposition bug
+        # for certain orientations (e.g. near-axis-aligned directions).
+        # For ZYZ intrinsic R = Rz(rot) @ Ry(tilt) @ Rz(psi):
+        #   R[2,:] = [-sin(tilt)*cos(psi), sin(tilt)*sin(psi), cos(tilt)]
+        # Setting rot=0 (free for symmetric cylinders), solve for tilt & psi.
+        _v = p_j - p_i
+        _d = float(np.linalg.norm(_v))
+        if _d < 1e-12:
+            rot, tilt, psi = 0.0, 0.0, 0.0
+        else:
+            _vh = _v / _d
+            tilt = math.degrees(math.acos(float(np.clip(_vh[2], -1.0, 1.0))))
+            _st = math.sin(math.radians(tilt))
+            if _st > 1e-12:
+                psi = math.degrees(math.atan2(float(_vh[1]), float(-_vh[0])))
+            else:
+                psi = 0.0
+            rot = 0.0
 
         p_val = float(erow[col_p]) if col_p and pd.notnull(erow[col_p]) else np.nan
         theta_val = float(erow[col_theta]) if col_theta and pd.notnull(erow[col_theta]) else np.nan
