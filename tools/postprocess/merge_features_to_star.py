@@ -15,6 +15,7 @@ Requires: pandas, starfile
 
 import argparse
 
+import numpy as np
 import pandas as pd
 import starfile
 
@@ -75,9 +76,10 @@ def main():
         "ChainSize": "rlnLC_ComponentSize",
         "ChainSizeRank": "rlnLC_ComponentSizeRank",
         "ClusterID": "rlnLC_ClusterID",
-        "ClusterChainCount": "rlnLC_ClusterChainCount",
         "ClusterParticleCount": "rlnLC_ClusterParticleCount",
-        "ChainNND_nm": "rlnLC_ChainNND_nm"
+        "ClusterChainCount": "rlnLC_ClusterChainCount",
+        "ChainNND_nm": "rlnLC_ChainNND_nm",
+        "ClusterSizeRank": "rlnLC_ClusterSizeRank"
     }
     for csv_col, star_col in cols_to_merge.items():
         if csv_col in comp_df.columns:
@@ -87,6 +89,43 @@ def main():
             print(f"[INFO] Added column '{star_col}' to STAR.")
         else:
             print(f"[WARN] Column '{csv_col}' not found in CSV, skipping.")
+
+    # ---- Post-process: mark singletons and create randomized rank ----
+    size_col = "rlnLC_ComponentSize"
+    rank_col = "rlnLC_ComponentSizeRank"
+    if size_col in df.columns and rank_col in df.columns:
+        # Singletons (size < 2) OR unmapped particles (NaN) have no meaningful rank
+        singleton_mask = df[size_col].isna() | (df[size_col] < 2)
+        df.loc[singleton_mask, rank_col] = -9999
+        print(f"[INFO] Set {rank_col} to -9999 for {singleton_mask.sum()} singleton particles.")
+
+        # Create a randomized rank column for better ChimeraX color separation.
+        # Shuffles at the unique-rank level so all particles in the same chain
+        # still share the same random rank.  Seed=42 for reproducibility.
+        random_col = "rlnLC_ComponentSizeRankRandom"
+        valid_ranks = np.sort(df.loc[~singleton_mask, rank_col].dropna().unique())
+        shuffled = np.random.default_rng(42).permutation(valid_ranks)
+        rank_map = dict(zip(valid_ranks, shuffled))
+        df[random_col] = df[rank_col].map(rank_map).fillna(-9999).astype(int)
+        df[rank_col] = df[rank_col].fillna(-9999).astype(int)
+        print(f"[INFO] Added column '{random_col}' ({len(valid_ranks)} unique ranks shuffled).")
+
+    # For clusters
+    cluster_size_col = "rlnLC_ClusterChainCount"
+    cluster_rank_col = "rlnLC_ClusterSizeRank"
+    if cluster_size_col in df.columns and cluster_rank_col in df.columns:
+        # Singleton clusters (count < 2) OR unmapped (NaN) have no meaningful rank
+        singleton_cluster_mask = df[cluster_size_col].isna() | (df[cluster_size_col] < 2)
+        df.loc[singleton_cluster_mask, cluster_rank_col] = -9999
+        print(f"[INFO] Set {cluster_rank_col} to -9999 for {singleton_cluster_mask.sum()} particles in singleton clusters.")
+
+        cluster_random_col = "rlnLC_ClusterSizeRankRandom"
+        valid_cluster_ranks = np.sort(df.loc[~singleton_cluster_mask, cluster_rank_col].dropna().unique())
+        shuffled_cluster = np.random.default_rng(43).permutation(valid_cluster_ranks)
+        cluster_rank_map = dict(zip(valid_cluster_ranks, shuffled_cluster))
+        df[cluster_random_col] = df[cluster_rank_col].map(cluster_rank_map).fillna(-9999).astype(int)
+        df[cluster_rank_col] = df[cluster_rank_col].fillna(-9999).astype(int)
+        print(f"[INFO] Added column '{cluster_random_col}' ({len(valid_cluster_ranks)} unique ranks shuffled).")
 
     # ---- Write ----
     if "particles" in data:

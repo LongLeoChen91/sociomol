@@ -94,8 +94,13 @@ def _cluster_per_tomo(args):
         ClusterParticleCount=("ChainSize", "sum"),
     ).reset_index()
 
+    # Create strict rank based on ClusterChainCount descending
+    cluster_stats["ClusterSizeRank"] = cluster_stats["ClusterChainCount"].rank(
+        method="first", ascending=False
+    ).astype(int)
+
     # Drop old stats if re-running, then merge fresh ones
-    for col in ["ClusterChainCount", "ClusterParticleCount", "ChainNND_nm", "NearestChainID"]:
+    for col in ["ClusterChainCount", "ClusterParticleCount", "ClusterSizeRank", "ChainNND_nm", "NearestChainID"]:
         if col in sizes_df.columns:
             sizes_df = sizes_df.drop(columns=[col])
 
@@ -116,7 +121,7 @@ def _cluster_per_tomo(args):
     sizes_df["NearestChainID"] = sizes_df.get("NearestChainID", pd.Series(dtype=object)).fillna("-9999")
 
     # Ensure cluster + NND columns are at the end
-    tail_cols = ["ChainNND_nm", "NearestChainID", "ClusterID", "ClusterChainCount", "ClusterParticleCount"]
+    tail_cols = ["ChainNND_nm", "NearestChainID", "ClusterID", "ClusterChainCount", "ClusterParticleCount", "ClusterSizeRank"]
     base_cols = [c for c in sizes_df.columns if c not in tail_cols]
     sizes_df = sizes_df[base_cols + tail_cols]
 
@@ -167,6 +172,7 @@ def _merge_global(args):
                 "ClusterID": global_cluster_id,
                 "ClusterChainCount": int(row["ClusterChainCount"]),
                 "ClusterParticleCount": int(row["ClusterParticleCount"]),
+                "ClusterSizeRank": int(row.get("ClusterSizeRank", -9999)),
                 "ChainNND_nm": float(row.get("ChainNND_nm", -9999.0)),
                 "NearestChainID": str(row.get("NearestChainID", "-9999")),
             }
@@ -177,7 +183,7 @@ def _merge_global(args):
         return s[:-2] if s.endswith('.0') else s
         
     global_df["_key"] = global_df["TomoName"].astype(str) + "_" + global_df["ChainID"].apply(clean_id)
-    for col in ["ClusterID", "ClusterChainCount", "ClusterParticleCount", "ChainNND_nm", "NearestChainID"]:
+    for col in ["ClusterID", "ClusterChainCount", "ClusterParticleCount", "ClusterSizeRank", "ChainNND_nm", "NearestChainID"]:
         global_df[col] = global_df["_key"].map(
             lambda x, c=col: chain_info.get(x, {}).get(c)
         )

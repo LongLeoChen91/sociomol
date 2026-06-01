@@ -86,14 +86,19 @@ def main():
         # fraction contain >= 2 linked chains (ChainSize > 1)?
         if len(linked) > 0:
             linked_per_cluster = linked.groupby("ClusterID")["ChainID"].count()
-            multi_chain_clusters = int((linked_per_cluster >= 2).sum())
+            multi_cluster_sizes = linked_per_cluster[linked_per_cluster >= 2]
+            multi_chain_clusters = int(len(multi_cluster_sizes))
             multi_chain_cluster_ratio = (
                 (multi_chain_clusters / num_clusters * 100)
                 if num_clusters > 0 else 0.0
             )
+            max_chains_in_multi = int(multi_cluster_sizes.max()) if multi_chain_clusters > 0 else 0
+            med_chains_in_multi = float(multi_cluster_sizes.median()) if multi_chain_clusters > 0 else 0.0
         else:
             multi_chain_clusters = 0
             multi_chain_cluster_ratio = 0.0
+            max_chains_in_multi = 0
+            med_chains_in_multi = 0.0
 
         # ChainsInMultiClusterRatio: what fraction of TRUE polysomes belong to a cluster with > 1 chain?
         if "ClusterChainCount" in grp.columns:
@@ -130,6 +135,8 @@ def main():
             # Cluster metrics (Group 2: the chains inside those clusters)
             "NumChainsInMultiClusters": chains_in_multi,
             "ChainsInMultiClusterRatio": round(chains_in_multi_ratio, 2),
+            "MaxChainsInMultiCluster": max_chains_in_multi,
+            "MedChainsInMultiCluster": round(med_chains_in_multi, 1),
             "MeanChainsPerMultiCluster": round(mean_chains_per_multi_cluster, 2),
         })
 
