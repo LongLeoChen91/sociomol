@@ -69,9 +69,12 @@ def _cluster_per_tomo(args):
     for cid in sizes_df["ChainID"]:
         uf.find(cid)
 
-    # Union chain pairs whose distance is within the threshold
+    # Union chain pairs whose distance is within the threshold range
     if not dist_df.empty and "ChainDistance_nm" in dist_df.columns:
-        close = dist_df[dist_df["ChainDistance_nm"] <= args.threshold]
+        close = dist_df[
+            (dist_df["ChainDistance_nm"] >= args.threshold_min) &
+            (dist_df["ChainDistance_nm"] <= args.threshold)
+        ]
         for _, row in close.iterrows():
             uf.union(row["ChainA"], row["ChainB"])
 
@@ -129,7 +132,10 @@ def _cluster_per_tomo(args):
 
     n_clusters = len(root_to_id)
     n_multi = int((cluster_stats["ClusterChainCount"] > 1).sum())
-    print(f"[INFO] Threshold: {args.threshold} nm → "
+    t_min = args.threshold_min
+    t_max = args.threshold
+    range_str = f"[{t_min}, {t_max}] nm" if t_min > 0 else f"<= {t_max} nm"
+    print(f"[INFO] Threshold: {range_str} → "
           f"{n_clusters} clusters ({n_multi} multi-chain, "
           f"{n_clusters - n_multi} singleton).")
     print(f"Saved to: {args.out_csv}")
@@ -218,7 +224,10 @@ def main():
     p_tomo.add_argument("--chain-sizes-csv", required=True,
                         help="Per-tomo chain_sizes.csv.")
     p_tomo.add_argument("--threshold", type=float, default=40.0,
-                        help="Distance threshold in nm (default: 40).")
+                        help="Maximum distance threshold in nm (default: 40).")
+    p_tomo.add_argument("--threshold-min", type=float, default=0.0,
+                        help="Minimum distance threshold in nm (default: 0). "
+                             "Use with --threshold to define a range [min, max].")
     p_tomo.add_argument("--out-csv", required=True,
                         help="Output CSV (can overwrite --chain-sizes-csv).")
 

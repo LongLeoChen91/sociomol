@@ -3,9 +3,9 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0\..\.."
 echo === Running SocioMol Post-processing: Chain Analysis ===
 
-set BASE=examples/chlamy_cryoet_STA_ribosomeV2
-set RAW_STAR=%BASE%/ID_ribosome80s_top3_tomos.star
-set PIXEL_SIZE=1.96
+set BASE=examples/template_workflow
+set RAW_STAR=%BASE%/your_selected_particles.star
+set PIXEL_SIZE=1.00
 
 if not exist "%BASE%/postprocess_output" mkdir "%BASE%/postprocess_output"
 
@@ -85,5 +85,5 @@ if !errorlevel! neq 0 exit /b !errorlevel!
 
 echo.
 echo === Chain Analysis Complete ===
-echo Now run run_postprocess2_cluster_batch.bat to cluster chains.
+echo Now run run_3_postprocess_clusters_Optional.bat to cluster chains.
 endlocal

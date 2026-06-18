@@ -17,6 +17,7 @@ import argparse
 import matplotlib
 matplotlib.use("Agg")  # headless-safe; overridden by --show
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import pandas as pd
 import starfile
 
@@ -75,6 +76,7 @@ def main():
     plt.xlabel("Number of connected particles", fontsize=13)
     plt.ylabel("Number of occurrences", fontsize=13)
     plt.xticks(fontsize=14)
+    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.yticks(fontsize=14)
     plt.text(0.95, 0.95, f"Average size: {avg_size:.2f}\nMax size: {max_size}",
              transform=plt.gca().transAxes,

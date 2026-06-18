@@ -3,23 +3,27 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0\..\.."
 echo === Running SocioMol Post-processing: Clustering ===
 
-set BASE=examples/chlamy_cryoet_STA_ribosomeV2
-set CLUSTER_THRESHOLD=30.0
+set BASE=examples/template_workflow
+:: Distance threshold range in nanometers (nm)
+:: Only chains within the distance range [MIN, MAX] are considered neighbors.
+set CLUSTER_THRESHOLD_MIN=0
+set CLUSTER_THRESHOLD=30
 
 echo.
 echo ========================================
-echo  Cluster threshold: %CLUSTER_THRESHOLD% nm
+echo  Cluster threshold: [%CLUSTER_THRESHOLD_MIN%, %CLUSTER_THRESHOLD%] nm
 echo ========================================
 for /D %%T in (%BASE%/postprocess_output\*) do (
     echo.
     echo --- Clustering tomo: %%~nxT ---
     set tomo_name=%%~nxT
 
-    echo   [1/3] Clustering nearby chains - threshold %CLUSTER_THRESHOLD% nm...
+    echo   [1/3] Clustering nearby chains - threshold [%CLUSTER_THRESHOLD_MIN%, %CLUSTER_THRESHOLD%] nm...
     python tools/postprocess/find_clusters_of_chains.py per-tomo ^
         --distance-csv "%%T\inter_chain_distances.csv" ^
         --chain-sizes-csv "%%T\chains.csv" ^
         --threshold %CLUSTER_THRESHOLD% ^
+        --threshold-min %CLUSTER_THRESHOLD_MIN% ^
         --out-csv "%%T\chains_clustered.csv"
     if !errorlevel! neq 0 exit /b !errorlevel!
 
@@ -56,6 +60,15 @@ python tools/postprocess/analyze_cluster_sizes.py ^
 if !errorlevel! neq 0 exit /b !errorlevel!
 
 echo.
-echo === Clustering Complete (threshold=%CLUSTER_THRESHOLD% nm) ===
+echo [Global Step 6] Generating per-tomogram quality summary...
+python tools/postprocess/summarize_tomos.py ^
+    --clustered-csv "%BASE%/postprocess_output\global_chains_clustered.csv" ^
+    --out-csv "%BASE%/postprocess_output\tomo_summary.csv"
+if !errorlevel! neq 0 exit /b !errorlevel!
+
+echo.
+echo === Clustering + Summary Complete (threshold=%CLUSTER_THRESHOLD% nm) ===
 echo Global cluster sizes saved to %BASE%/postprocess_output\global_clusters.csv
+echo Per-tomogram summary saved to %BASE%/postprocess_output\tomo_summary.csv
 endlocal
+

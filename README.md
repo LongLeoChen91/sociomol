@@ -141,9 +141,16 @@ sociomol evaluate \
 
 ## Preprocessing and Geometry Models
 
-The `sociomol preprocess` command converts a standard RELION STAR file (with
-`rlnCoordinateX/Y/Z` and `rlnAngleRot/Tilt/Psi`) into an arm-annotated
+The `sociomol preprocess` command converts a standard RELION STAR file into an arm-annotated
 STAR file that the prediction pipeline requires.
+
+> [!NOTE]  
+> **Minimal Required STAR Columns**  
+> SocioMol mathematically relies on exactly 8 specific columns in your input STAR file. As long as these are present, you can safely strip out or keep any other upstream RELION metadata:
+> - **3D localization:** `_rlnCoordinateX`, `_rlnCoordinateY`, `_rlnCoordinateZ`
+> - **3D orientation:** `_rlnAngleRot`, `_rlnAngleTilt`, `_rlnAnglePsi`
+> - **Spatial boundary:** `_rlnTomoName` *(ensures distance calculations do not cross tomograms)*
+> - **Unique tracking:** `_rlnTomoParticleId` *(identifies individual particles as graph nodes)*
 
 Arm geometry is defined by a **JSON configuration file** that describes the
 local-frame coordinates of each arm's exit point and tangent direction for a

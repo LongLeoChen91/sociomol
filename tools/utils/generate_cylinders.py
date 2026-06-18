@@ -5,9 +5,9 @@ import math
 from pathlib import Path
 
 # ========= Configurable Parameters =========
-pixel_size = 2.5           # Å per voxel
+pixel_size = 1           # Å per voxel
 cylinder_radius_vox = 4    # radius in voxels
-length_list_A = [35, 85, 135, 185, 235, 285, 335]  # desired cylinder lengths in Å
+length_list_A = [35, 85, 135, 185, 235, 285, 335,500]  # desired cylinder lengths in Å
 # dashed parameters (edit as you like)
 on_len  = 8   # number of filled z-slices per block
 # off_len = 8   # number of empty z-slices per block; set to 0 for solid cylinder

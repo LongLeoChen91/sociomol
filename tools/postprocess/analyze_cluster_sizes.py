@@ -14,6 +14,7 @@ import argparse
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 
 
@@ -67,10 +68,21 @@ def main():
     axes[0].set_ylabel("Count of Clusters")
 
     # Plot 2: Particles per Cluster
-    sns.histplot(data=valid_clusters, x="ClusterParticleCount", bins=15, color="#e74c3c", ax=axes[1])
+    sns.histplot(data=valid_clusters, x="ClusterParticleCount", discrete=True, color="#e74c3c", ax=axes[1])
     axes[1].set_title("Distribution of Particles per Cluster")
     axes[1].set_xlabel("Total Number of Particles in Cluster")
     axes[1].set_ylabel("Count of Clusters")
+
+    # Explicitly set x-ticks to actual data values to avoid empty integer ticks when data is sparse
+    chain_counts = sorted(valid_clusters["ClusterChainCount"].unique())
+    axes[0].set_xticks(chain_counts)
+    
+    particle_counts = sorted(valid_clusters["ClusterParticleCount"].unique())
+    axes[1].set_xticks(particle_counts)
+
+    # Force integer ticks on y-axes (counts are always integers)
+    axes[0].yaxis.set_major_locator(MaxNLocator(integer=True))
+    axes[1].yaxis.set_major_locator(MaxNLocator(integer=True))
 
     plt.tight_layout()
     plt.savefig(args.out_plot, dpi=300, bbox_inches="tight")
