@@ -23,6 +23,8 @@ def main():
     parser.add_argument("--star", required=True, help="Input STAR file (e.g. ranked_particles.star).")
     parser.add_argument("--out-csv", required=True, help="Output CSV file for pairwise distances.")
     parser.add_argument("--out-plot", required=True, help="Output histogram plot (.png).")
+    parser.add_argument("--out-nn-csv", help="Optional output CSV file for nearest neighbor distances.")
+    parser.add_argument("--out-nn-plot", help="Optional output histogram plot for nearest neighbor distances.")
     parser.add_argument("--pixel-size", type=float, required=True, help="Pixel size in Angstroms/pixel.")
     parser.add_argument("--min-size", type=int, default=2, help="Minimum chain size to be considered (default: 2).")
     parser.add_argument("--cutoff", type=float, default=30.0, help="Maximum distance cutoff in nm for the plot (default: 30 nm).")
@@ -62,6 +64,12 @@ def main():
         plt.figure()
         plt.title("No chains found")
         plt.savefig(args.out_plot)
+        if args.out_nn_csv:
+            pd.DataFrame(columns=["ChainID", "ChainSize", "NearestChainID", "NNDistance_nm"]).to_csv(args.out_nn_csv, index=False)
+        if args.out_nn_plot:
+            plt.figure()
+            plt.title("No chains found")
+            plt.savefig(args.out_nn_plot)
         sys.exit(0)
 
     # Group by chain component
@@ -77,6 +85,12 @@ def main():
         plt.figure()
         plt.title("Not enough chains")
         plt.savefig(args.out_plot)
+        if args.out_nn_csv:
+            pd.DataFrame(columns=["ChainID", "ChainSize", "NearestChainID", "NNDistance_nm"]).to_csv(args.out_nn_csv, index=False)
+        if args.out_nn_plot:
+            plt.figure()
+            plt.title("Not enough chains")
+            plt.savefig(args.out_nn_plot)
         sys.exit(0)
 
     # Compute distances
@@ -108,23 +122,51 @@ def main():
     res_df.to_csv(args.out_csv, index=False)
     print(f"Saved distances to: {args.out_csv}")
     
-    # Plotting
+    # Plotting Pairwise Distances
     cutoff_nm = args.cutoff
     filtered_distances = res_df[res_df["ChainDistance_nm"] <= cutoff_nm]["ChainDistance_nm"]
     
     plt.figure(figsize=(8, 6))
     if not filtered_distances.empty:
-        # choose a reasonable bin size, e.g., 2 nm
         bins = np.arange(0, cutoff_nm + 2, 2)
         plt.hist(filtered_distances, bins=bins, color="#8b0000", edgecolor="black", alpha=0.8)
     
-    plt.title(f"Distance Between Polysome Chains (Size $\\geq$ {args.min_size})\nCutoff: {cutoff_nm} nm")
-    plt.xlabel("Distance (nm)")
-    plt.ylabel("Frequency (Pairs of Chains)")
+    plt.title(f"All Pairwise Distances Between Chains (Size $\\geq$ {args.min_size})\nCutoff: {cutoff_nm} nm")
+    plt.xlabel("Pairwise Distance (nm)")
+    plt.ylabel("Number of Unique Chain Pairs")
     plt.grid(axis="y", alpha=0.3)
     plt.tight_layout()
     plt.savefig(args.out_plot, dpi=300)
     print(f"Saved histogram plot to: {args.out_plot}")
-    
+    plt.close()
+
+    # ---- Nearest Neighbor (NN) Computation ----
+    if args.out_nn_csv or args.out_nn_plot:
+        df_a = res_df[["ChainA", "ChainB", "ChainA_Size", "ChainDistance_nm"]].rename(columns={"ChainA": "ChainID", "ChainB": "NearestChainID", "ChainA_Size": "ChainSize", "ChainDistance_nm": "NNDistance_nm"})
+        df_b = res_df[["ChainB", "ChainA", "ChainB_Size", "ChainDistance_nm"]].rename(columns={"ChainB": "ChainID", "ChainA": "NearestChainID", "ChainB_Size": "ChainSize", "ChainDistance_nm": "NNDistance_nm"})
+        df_all = pd.concat([df_a, df_b]).reset_index(drop=True)
+        
+        idx = df_all.groupby("ChainID")["NNDistance_nm"].idxmin()
+        nn_df = df_all.loc[idx, ["ChainID", "ChainSize", "NearestChainID", "NNDistance_nm"]]
+        
+        if args.out_nn_csv:
+            nn_df.to_csv(args.out_nn_csv, index=False)
+            print(f"Saved nearest chain distances to: {args.out_nn_csv}")
+            
+        if args.out_nn_plot:
+            nn_distances = nn_df[nn_df["NNDistance_nm"] <= cutoff_nm]["NNDistance_nm"]
+            plt.figure(figsize=(8, 6))
+            if not nn_distances.empty:
+                bins = np.arange(0, cutoff_nm + 2, 2)
+                plt.hist(nn_distances, bins=bins, color="#ff8c00", edgecolor="black", alpha=0.8)
+            plt.title(f"Nearest Neighbor Distance Per Chain (Size $\\geq$ {args.min_size})\nCutoff: {cutoff_nm} nm")
+            plt.xlabel("Nearest Neighbor Distance (nm)")
+            plt.ylabel("Number of Individual Chains")
+            plt.grid(axis="y", alpha=0.3)
+            plt.tight_layout()
+            plt.savefig(args.out_nn_plot, dpi=300)
+            print(f"Saved nearest chain histogram to: {args.out_nn_plot}")
+            plt.close()
+
 if __name__ == "__main__":
     main()

@@ -6,7 +6,7 @@ set BASE=examples/template_workflow
 set RAW_STAR=%BASE%/your_selected_particles.star
 set PIXEL_SIZE=1.00
 
-REM Step 1: Preprocess raw STAR
+REM Step 1: Annotate arms
 sociomol preprocess ^
     --input  "%RAW_STAR%" ^
     --output "%BASE%/prepared_arms.star" ^

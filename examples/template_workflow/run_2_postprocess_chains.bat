@@ -68,6 +68,8 @@ for /D %%T in (%BASE%/postprocess_output\*) do (
         --star "%%T\chain_particles.star" ^
         --out-csv "%%T\inter_chain_distances.csv" ^
         --out-plot "%%T\inter_chain_distance_hist.png" ^
+        --out-nn-csv "%%T\nearest_chain_distances.csv" ^
+        --out-nn-plot "%%T\nearest_chain_distance_hist.png" ^
         --pixel-size %PIXEL_SIZE% ^
         --min-size 2 ^
         --cutoff 40.0
@@ -80,6 +82,8 @@ python tools/postprocess/pool_chain_distances.py ^
     --csv-dir "%BASE%/postprocess_output" ^
     --out-csv "%BASE%/postprocess_output\global_inter_chain_distances.csv" ^
     --out-plot "%BASE%/postprocess_output\global_inter_chain_distance_hist.png" ^
+    --out-nn-csv "%BASE%/postprocess_output\global_nearest_chain_distances.csv" ^
+    --out-nn-plot "%BASE%/postprocess_output\global_nearest_chain_distance_hist.png" ^
     --cutoff 40.0
 if !errorlevel! neq 0 exit /b !errorlevel!
 

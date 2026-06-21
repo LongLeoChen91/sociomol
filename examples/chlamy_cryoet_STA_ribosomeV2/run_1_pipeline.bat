@@ -6,7 +6,7 @@ set BASE=examples/chlamy_cryoet_STA_ribosomeV2
 set RAW_STAR=%BASE%/prepared_ribosome_subset.star
 set PIXEL_SIZE=1.96
 
-REM Step 1: Preprocess raw STAR
+REM Step 1: Annotate arms
 sociomol preprocess ^
     --input  "%RAW_STAR%" ^
     --output "%BASE%/prepared_arms.star" ^
