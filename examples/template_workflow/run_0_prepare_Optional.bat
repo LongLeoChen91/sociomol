@@ -39,4 +39,17 @@ python "%PREPARE_SCRIPT%" "!TARGET_STAR!" --pixel-size %PIXEL_SIZE% --apply
 if errorlevel 1 exit /b 1
 
 echo.
-echo [SUCCESS] File ready! Use "prepared_!TARGET_STAR!" for 'sociomol preprocess'.
+:: Dynamically determine the final star file name based on whether it was prepared
+set "FINAL_STAR=!TARGET_STAR!"
+if exist "prepared_!TARGET_STAR!" (
+    set "FINAL_STAR=prepared_!TARGET_STAR!"
+)
+
+echo ========================================================
+echo [SUCCESS] Preparation phase completed.
+echo.
+echo [NEXT STEPS]
+echo 1. Please open "run_1_pipeline.bat"
+echo 2. Update the RAW_STAR variable to match your valid star file:
+echo    set RAW_STAR=%%BASE%%/!FINAL_STAR!
+echo ========================================================

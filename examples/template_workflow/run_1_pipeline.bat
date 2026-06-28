@@ -9,14 +9,14 @@ set PIXEL_SIZE=1.00
 REM Step 1: Annotate arms
 sociomol preprocess ^
     --input  "%RAW_STAR%" ^
-    --output "%BASE%/prepared_arms.star" ^
+    --output "%BASE%/preprocessed_arms.star" ^
     --model-json  "%BASE%/arm_geometry.json" ^
     --pixel-size %PIXEL_SIZE%
 
 REM Step 2: Predict linker connections
 sociomol predict ^
-    --input  "%BASE%/prepared_arms.star" ^
-    --output "%BASE%/prepared_arms_annotated.star" ^
+    --input  "%BASE%/preprocessed_arms.star" ^
+    --output "%BASE%/preprocessed_arms_annotated.star" ^
     --edges  "%BASE%/Linker_edges.csv" ^
     --pixel-size %PIXEL_SIZE% ^
     --dist-cutoff 30 ^

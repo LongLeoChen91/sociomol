@@ -12,7 +12,7 @@ if not exist "%BASE%/postprocess_output" mkdir "%BASE%/postprocess_output"
 echo.
 echo [Global Step 1] Computing Global Chain Size Distribution...
 python tools/postprocess/analyze_chain_sizes.py ^
-    --annotated "%BASE%/prepared_arms_annotated.star" ^
+    --annotated "%BASE%/preprocessed_arms_annotated.star" ^
     --out-csv "%BASE%/postprocess_output\global_chains.csv" ^
     --out-plot "%BASE%/postprocess_output\global_chains_hist.png"
 if !errorlevel! neq 0 exit /b !errorlevel!
@@ -20,7 +20,7 @@ if !errorlevel! neq 0 exit /b !errorlevel!
 echo.
 echo [Global Step 2] Splitting files by tomogram...
 python tools/postprocess/split_by_tomo.py ^
-    --annotated "%BASE%/prepared_arms_annotated.star" ^
+    --annotated "%BASE%/preprocessed_arms_annotated.star" ^
     --edges "%BASE%/Linker_edges.csv" ^
     --raw "%RAW_STAR%" ^
     --out-dir "%BASE%/postprocess_output"
