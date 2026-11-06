@@ -7,8 +7,8 @@ import tempfile
 import pytest
 
 EXAMPLES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples")
-NUC_STAR = os.path.join(EXAMPLES_DIR, "nucleosome", "H1_DoubleLinker.star")
-NUC_TRUTH = os.path.join(EXAMPLES_DIR, "nucleosome", "GroundTruth_edges_M1.csv")
+NUC_STAR = os.path.join(EXAMPLES_DIR, "manual_nucleosome", "H1_DoubleLinker.star")
+NUC_TRUTH = os.path.join(EXAMPLES_DIR, "manual_nucleosome", "GroundTruth_edges_M1.csv")
 
 PYTHON = sys.executable
 

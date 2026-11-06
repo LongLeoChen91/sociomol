@@ -9,7 +9,7 @@ import pytest
 from linker_prediction import run_prediction_pipeline
 
 EXAMPLES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples")
-NUC_STAR = os.path.join(EXAMPLES_DIR, "nucleosome", "H1_DoubleLinker.star")
+NUC_STAR = os.path.join(EXAMPLES_DIR, "manual_nucleosome", "H1_DoubleLinker.star")
 
 
 @pytest.fixture
